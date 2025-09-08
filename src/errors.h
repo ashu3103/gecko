@@ -1,6 +1,8 @@
 #ifndef ERRORS_H
 #define ERRORS_H
 
+#include "position.h"
+
 #include <iostream>
 #include <string>
 
@@ -32,12 +34,12 @@ namespace errors {
         ~Error();
         /**
          * filing a complaint with details
-         * @param line The line at which the error originated
-         * @param col The column at which the error originated
+         * @param err_type The error type
+         * @param pos The position of the token
          * @param msg The message to be printed
          * @param filename The translational unit
          */
-        void ReportError(ErrorType err_type, int line, int col, std::string msg, std::string filename);
+        void ReportError(ErrorType err_type, position::Pos pos, std::string msg);
     };
 }
 
