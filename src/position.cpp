@@ -1,23 +1,6 @@
 #include "position.h"
 
-int GetLineIndex(u_int32_t off, std::vector<u_int32_t>& line_offs) {
-    int n = line_offs.size();
-
-    int s = 0;
-    int e = n - 1;
-
-    while(s <= e) {
-        int mid = (e - s)/2 + s;
-        if (line_offs[mid] <= off) {
-            s = mid;
-        } else {
-            e = mid - 1;
-        }
-    }
-
-    return s;
-}
-
+static int GetLineIndex(u_int32_t off, std::vector<u_int32_t>& line_offs);
 namespace position {
     /* Constructor/Destructor */
     Pos::Pos(u_int32_t s_off, u_int32_t e_off) {
@@ -59,7 +42,26 @@ namespace position {
 
     int Pos::GetColumnNumber() {
         int line_off = this->line_offsets[GetLineIndex(this->start_offset, this->line_offsets)];
-        return start_offset - line_off;
+        return start_offset - line_off + 1;
+    }
+}
+
+/* Binary Search over the line offsets to get the line number of the token */
+static int GetLineIndex(u_int32_t off, std::vector<u_int32_t>& line_offs) {
+    int n = line_offs.size();
+    int s = 0;
+    int e = n - 1;
+    int res = -1;
+
+    while(s <= e) {
+        int mid = (e - s)/2 + s;
+        if (line_offs[mid] <= off) {
+            res = mid;
+            s = mid + 1;
+        } else {
+            e = mid - 1;
+        }
     }
 
+    return res;
 }
