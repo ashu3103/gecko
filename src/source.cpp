@@ -4,14 +4,17 @@ static size_t NextSize(size_t c_sz);
 static void MemCopy(void* dst, const void* src, size_t nbytes);
 
 namespace source {
-    Source::Source() {
+    Source::Source(std::fstream&& in) {
+        this->in = std::move(in);
+
         this->b = -1;
         this->r = 0;
         this->e = 0;
         this->chr = ' ';
         this->chw = 0;
 
-        this->buffer = NULL;  // TODO: initialize the buffer
+        Source::ResizeOrFlushBuffer(0);  // initialize buffer
+        this->buffer[0] = SENTINEL;
         this->line = 0;
         this->col = 0;
     }
@@ -65,13 +68,59 @@ namespace source {
 
         // Copy the contents to the new buffer
         MemCopy(this->buffer, content, content_length);
-        this->buffer[content_length] = SENTINEL;
+        this->buffer[this->buffer_length - 1] = SENTINEL;
 
-        this->b = 0;
+        if (this->b >= 0)
+        {
+            this->b = 0;
+        }
         this->r = this->r - b;
         this->e = this->e - b;
     }
 
+    void Source::Fill()
+    {
+        size_t bytes_read = 0;
+        /* try resizing or collapsing the buffer */
+        Source::ResizeOrFlushBuffer(this->buffer_length);
+
+        /* fill the buffer, leave the last character for sentinal */
+        this->in.read((char*)this->buffer, this->buffer_length - 1);
+        bytes_read = this->in.gcount();
+
+        /* update buffer */
+        this->e += bytes_read;
+        this->buffer[this->e] = SENTINEL;
+    }
+
+    void Source::NextChr()
+    {
+        this->col += this->chw;
+        if (this->chr == '\n')
+        {
+            this->line++;
+            this->col = 0;
+        }
+        
+        /* Try filling more bytes to buffer */
+        if (this->e == this->r)
+        {
+            Source::Fill();
+        }
+
+        /* EOF */
+        if (this->e == this->r)
+        {
+            this->chr = ' ';
+            this->chw = 0;
+            return;
+        }
+
+        /* read and return one character */
+        this->chw = 1;
+        this->chr = this->buffer[this->r];
+        this->r += this->chw;
+    }
 }
 
 static size_t NextSize(size_t c_sz) {
