@@ -17,6 +17,8 @@ Segment is nothing but the substring of buffer read from the point `b`
 
 #include <vector>
 #include <string>
+#include <fstream>
+#include <utility>
 
 #define SENTINEL 128
 #define MIN_BUFFER_SIZE 4096
@@ -24,6 +26,8 @@ Segment is nothing but the substring of buffer read from the point `b`
 
 namespace source {
     class Source {
+        std::fstream in;
+
         // indices
         size_t b;
         size_t r;
@@ -38,6 +42,7 @@ namespace source {
         unsigned char chr;  // the latest character read
         int chw;            // width of the latest character read (if read 1, otherwise 0)
 
+        /* content length is from b to e excluding e */
         void GetBufferContent(unsigned char* &c, size_t &c_len) {
             // TODO: assert buffer is not nil
             unsigned char* content = new unsigned char[this->e - this->b];
@@ -49,7 +54,7 @@ namespace source {
         }
 
         public:
-            Source();
+            Source(std::fstream&& in);
             ~Source();
 
             void Start();
@@ -58,6 +63,12 @@ namespace source {
 
             /* If segment size exceeds the buffer length grow otherwise flush the read characters from the buffer */
             void ResizeOrFlushBuffer(int sz);
+
+            /* Fill the buffer */
+            void Fill();
+
+            /* read the next character */
+            void NextChr();
     };
 }
 
