@@ -14,7 +14,6 @@ namespace source {
         this->e = 0;
         this->chr = ' ';
         this->chw = 0;
-        std::cout << this->b << " " << this->r << " " << this->e << std::endl;
 
         this->buffer_length = 0;
         Source::ResizeOrFlushBuffer(0);  // initialize buffer
@@ -59,8 +58,6 @@ namespace source {
         }
         
         this->GetBufferContent(b, this->e, content, content_length);
-        if (content)
-            std::cout << "resize " << content << " " << content_length << std::endl;
         // Check the need to grow the buffer
         if (this->buffer_length <= content_length*2) {
             new_size = NextSize(sz);
@@ -95,9 +92,7 @@ namespace source {
     {
         size_t bytes_read = 0;
         /* try resizing or collapsing the buffer */
-        std::cout << "fill " << this->buffer << std::endl;
         Source::ResizeOrFlushBuffer(this->buffer_length);
-        std::cout << "fill " << this->buffer << std::endl;
 
         /* fill the buffer, leave the last character for sentinal */
         this->in.read((char*)this->buffer, this->buffer_length - 1);
@@ -118,10 +113,7 @@ namespace source {
         
         /* Try filling more bytes to buffer */
         if (this->e == this->r)
-        {
-            std::cout << "filled called" << std::endl;
             Source::Fill();
-        }
 
         /* EOF */
         if (this->e == this->r)
