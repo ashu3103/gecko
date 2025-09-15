@@ -15,6 +15,7 @@ Segment is nothing but the substring of buffer read from the point `b`
 #ifndef SOURCE_H
 #define SOURCE_H
 
+#include <iostream>  // remove this
 #include <vector>
 #include <string>
 #include <fstream>
@@ -22,16 +23,17 @@ Segment is nothing but the substring of buffer read from the point `b`
 
 #define SENTINEL 128
 #define MIN_BUFFER_SIZE 4096
-#define MAX_BUFFER_SIZE 0
+#define MAX_BUFFER_SIZE 10 * 1024
 
 namespace source {
     class Source {
+        public:
         std::fstream in;
 
         // indices
-        size_t b;
-        size_t r;
-        size_t e;
+        int b;
+        int r;
+        int e;
         // buffer
         unsigned char *buffer = NULL;
         size_t buffer_length = 0;
@@ -43,17 +45,24 @@ namespace source {
         int chw;            // width of the latest character read (if read 1, otherwise 0)
 
         /* content length is from b to e excluding e */
-        void GetBufferContent(unsigned char* &c, size_t &c_len) {
+        void GetBufferContent(int s, int e, unsigned char* &c, size_t &c_len) {
+            if (e - s <= 0)
+            {
+                c_len = 0;
+                c = NULL;
+                return;
+            }
             // TODO: assert buffer is not nil
-            unsigned char* content = new unsigned char[this->e - this->b];
-            for (size_t i = this->b; i < this->e; ++i) {
+            unsigned char* content = new unsigned char[e - s];
+            std::cout << content << std::endl;
+            for (int i = s; i < b; ++i) {
                 content[i] = this->buffer[i];
             }
+
             c = content;
-            c_len = this->e - this->b;
+            c_len = e - s;
         }
 
-        public:
             Source(std::fstream&& in);
             ~Source();
 

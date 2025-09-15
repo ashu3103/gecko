@@ -1,7 +1,9 @@
 #include "source.h"
+#include <iostream>
 
 static size_t NextSize(size_t c_sz);
 static void MemCopy(void* dst, const void* src, size_t nbytes);
+static void Memset(void* buf, int c, size_t nbytes);
 
 namespace source {
     Source::Source(std::fstream&& in) {
@@ -12,7 +14,9 @@ namespace source {
         this->e = 0;
         this->chr = ' ';
         this->chw = 0;
+        std::cout << this->b << " " << this->r << " " << this->e << std::endl;
 
+        this->buffer_length = 0;
         Source::ResizeOrFlushBuffer(0);  // initialize buffer
         this->buffer[0] = SENTINEL;
         this->line = 0;
@@ -36,7 +40,7 @@ namespace source {
 
     std::string Source::Segment() {
         std::string res = "";
-        for (size_t i = this->b; i < this->r; ++i) {
+        for (int i = this->b; i < this->r; ++i) {
             res += this->buffer[i];
         }
         return res;
@@ -44,9 +48,9 @@ namespace source {
 
     void Source::ResizeOrFlushBuffer(int sz) {
         unsigned char* content = NULL;
-        size_t content_length;
+        size_t content_length = 0;
         size_t new_size;
-        size_t b;
+        int b;
 
         b = this->r;
         if (this->b >= 0)
@@ -54,20 +58,29 @@ namespace source {
             b = this->b;
         }
         
-        this->GetBufferContent(content, content_length);
+        this->GetBufferContent(b, this->e, content, content_length);
+        if (content)
+            std::cout << "resize " << content << " " << content_length << std::endl;
         // Check the need to grow the buffer
         if (this->buffer_length <= content_length*2) {
             new_size = NextSize(sz);
+            std::cout << new_size << std::endl;
             // create new resized buffer
-            delete[] this->buffer;
+            if (this->buffer)
+            {
+                delete[] this->buffer;
+            }
             this->buffer = new unsigned char[new_size];
             this->buffer_length = new_size;
+            // Memset(this->buffer, 0, this->buffer_length);
         } else {
             new_size = sz;
         }
 
         // Copy the contents to the new buffer
-        MemCopy(this->buffer, content, content_length);
+        if (content)
+            MemCopy(this->buffer, content, content_length);
+
         this->buffer[this->buffer_length - 1] = SENTINEL;
 
         if (this->b >= 0)
@@ -82,12 +95,13 @@ namespace source {
     {
         size_t bytes_read = 0;
         /* try resizing or collapsing the buffer */
+        std::cout << "fill " << this->buffer << std::endl;
         Source::ResizeOrFlushBuffer(this->buffer_length);
+        std::cout << "fill " << this->buffer << std::endl;
 
         /* fill the buffer, leave the last character for sentinal */
         this->in.read((char*)this->buffer, this->buffer_length - 1);
         bytes_read = this->in.gcount();
-
         /* update buffer */
         this->e += bytes_read;
         this->buffer[this->e] = SENTINEL;
@@ -105,6 +119,7 @@ namespace source {
         /* Try filling more bytes to buffer */
         if (this->e == this->r)
         {
+            std::cout << "filled called" << std::endl;
             Source::Fill();
         }
 
@@ -137,5 +152,12 @@ static void MemCopy(void* dst, const void* src, size_t nbytes) {
 
     for (size_t i = 0; i < nbytes; ++i) {
         d[i] = s[i];
+    }
+}
+
+static void Memset(void* buf, int c, size_t nbytes) {
+    auto* d = static_cast<unsigned char*>(buf);
+    for (size_t i = 0; i < nbytes; ++i) {
+        d[i] = c;
     }
 }
