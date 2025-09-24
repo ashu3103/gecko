@@ -1,9 +1,9 @@
 #include "position.h"
 
-static int GetLineIndex(u_int32_t off, std::vector<u_int32_t>& line_offs);
+static int GetLineIndex(size_t off, std::vector<size_t>& line_offs);
 namespace position {
     /* Constructor/Destructor */
-    Pos::Pos(u_int32_t s_off, u_int32_t e_off) {
+    Pos::Pos(size_t s_off, size_t e_off) {
         this->start_offset = s_off;
         this->end_offset = e_off;
     }
@@ -11,7 +11,7 @@ namespace position {
     Pos::~Pos() {}
 
     /* Manipulate File Context fields */
-    void Pos::AddLineOffset(u_int32_t off) {
+    void Pos::AddLineOffset(size_t off) {
         this->line_offsets.push_back(off);
     }
 
@@ -47,7 +47,7 @@ namespace position {
 }
 
 /* Binary Search over the line offsets to get the line number of the token */
-static int GetLineIndex(u_int32_t off, std::vector<u_int32_t>& line_offs) {
+static int GetLineIndex(size_t off, std::vector<size_t>& line_offs) {
     int n = line_offs.size();
     int s = 0;
     int e = n - 1;

@@ -37,9 +37,8 @@ namespace source {
         // buffer
         unsigned char *buffer = NULL;
         size_t buffer_length = 0;
-        // location
-        int line;
-        int col;
+        // file offset
+        size_t offset;
 
         unsigned char chr;  // the latest character read
         int chw;            // width of the latest character read (if read 1, otherwise 0)
@@ -54,7 +53,6 @@ namespace source {
             }
             // TODO: assert buffer is not nil
             unsigned char* content = new unsigned char[e - s];
-            std::cout << content << std::endl;
             for (int i = s; i < b; ++i) {
                 content[i] = this->buffer[i];
             }
@@ -78,6 +76,9 @@ namespace source {
 
             /* read the next character */
             void NextChr();
+
+            /* get the current file offset */
+            size_t GetCurrentOffset();
     };
 }
 

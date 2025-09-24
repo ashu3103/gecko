@@ -3,7 +3,7 @@
 
 static size_t NextSize(size_t c_sz);
 static void MemCopy(void* dst, const void* src, size_t nbytes);
-static void Memset(void* buf, int c, size_t nbytes);
+// static void Memset(void* buf, int c, size_t nbytes);
 
 namespace source {
     Source::Source(std::fstream&& in) {
@@ -18,11 +18,11 @@ namespace source {
         this->buffer_length = 0;
         Source::ResizeOrFlushBuffer(0);  // initialize buffer
         this->buffer[0] = SENTINEL;
-        this->line = 0;
-        this->col = 0;
+        this->offset = 0;
     }
 
     Source::~Source() {
+        this->in.close();
         // deallocate the buffer
         if (this->buffer)
             delete[] this->buffer;
@@ -39,7 +39,7 @@ namespace source {
 
     std::string Source::Segment() {
         std::string res = "";
-        for (int i = this->b; i < this->r; ++i) {
+        for (int i = this->b; i < this->r - this->chw; ++i) {
             res += this->buffer[i];
         }
         return res;
@@ -61,7 +61,6 @@ namespace source {
         // Check the need to grow the buffer
         if (this->buffer_length <= content_length*2) {
             new_size = NextSize(sz);
-            std::cout << new_size << std::endl;
             // create new resized buffer
             if (this->buffer)
             {
@@ -88,6 +87,11 @@ namespace source {
         this->e = this->e - b;
     }
 
+    size_t Source::GetCurrentOffset()
+    {
+        return this->offset;
+    }
+
     void Source::Fill()
     {
         size_t bytes_read = 0;
@@ -104,12 +108,7 @@ namespace source {
 
     void Source::NextChr()
     {
-        this->col += this->chw;
-        if (this->chr == '\n')
-        {
-            this->line++;
-            this->col = 0;
-        }
+        this->offset += this->chw;
         
         /* Try filling more bytes to buffer */
         if (this->e == this->r)
@@ -118,7 +117,7 @@ namespace source {
         /* EOF */
         if (this->e == this->r)
         {
-            this->chr = ' ';
+            this->chr = SENTINEL;
             this->chw = 0;
             return;
         }
@@ -147,9 +146,9 @@ static void MemCopy(void* dst, const void* src, size_t nbytes) {
     }
 }
 
-static void Memset(void* buf, int c, size_t nbytes) {
-    auto* d = static_cast<unsigned char*>(buf);
-    for (size_t i = 0; i < nbytes; ++i) {
-        d[i] = c;
-    }
-}
+// static void Memset(void* buf, int c, size_t nbytes) {
+//     auto* d = static_cast<unsigned char*>(buf);
+//     for (size_t i = 0; i < nbytes; ++i) {
+//         d[i] = c;
+//     }
+// }

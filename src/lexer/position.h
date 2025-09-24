@@ -8,19 +8,19 @@ namespace position {
     class Pos {
         public:
             // per-file context (remains constant till the next file is encountered)
-            inline static std::vector<u_int32_t> line_offsets = {};
+            inline static std::vector<size_t> line_offsets = {};
             inline static std::string filename = "";
             inline static bool initialized = false;
 
             void InitFileContext(std::string fname);
             void ResetFileContext();
-            void AddLineOffset(u_int32_t off);
+            void AddLineOffset(size_t off);
 
             // per-token byte positions
-            u_int32_t start_offset;
-            u_int32_t end_offset;
+            size_t start_offset;
+            size_t end_offset;
 
-            Pos(u_int32_t s_off, u_int32_t e_off);
+            Pos(size_t s_off, size_t e_off);
             ~Pos();
 
             int GetLineNumber();
