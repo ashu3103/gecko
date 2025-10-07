@@ -10,11 +10,12 @@ namespace position {
 
     Pos::~Pos() {}
 
-    /* Get the position of the token */
+    /* Get the line number of the token */
     int Pos::GetLineNumber() {
         return GetLineIndex(this->start_offset, Pos::line_offsets) + 1;
     }
 
+    /* Get the column number of the token */
     int Pos::GetColumnNumber() {
         int line_off = line_offsets[GetLineIndex(this->start_offset, Pos::line_offsets)];
         return start_offset - line_off + 1;

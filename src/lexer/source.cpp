@@ -4,7 +4,6 @@
 
 static size_t NextSize(size_t c_sz);
 static void MemCopy(void* dst, const void* src, size_t nbytes);
-// static void Memset(void* buf, int c, size_t nbytes);
 
 namespace source {
     Source::Source(std::string filepath) {
@@ -34,14 +33,17 @@ namespace source {
         this->buffer = NULL;
     }
 
+    /* set the begin index to the first outstanding buffer index */
     void Source::Start() {
         this->b = this->r - this->chw;
     }
 
+    /* set the begin index to some invalid index, to unable any processing untill Start() is called */
     void Source::Stop() {
         this->b = -1;
     }
 
+    /* returns the buffer content read from the begin index */
     std::string Source::Segment() {
         std::string res = "";
         for (int i = this->b; i < this->r - this->chw; ++i) {
@@ -95,6 +97,11 @@ namespace source {
     size_t Source::GetCurrentOffset()
     {
         return this->offset;
+    }
+
+    unsigned char Source::GetCurrentChr()
+    {
+        return this->chr;
     }
 
     void Source::Fill()
@@ -155,10 +162,3 @@ static void MemCopy(void* dst, const void* src, size_t nbytes) {
         d[i] = s[i];
     }
 }
-
-// static void Memset(void* buf, int c, size_t nbytes) {
-//     auto* d = static_cast<unsigned char*>(buf);
-//     for (size_t i = 0; i < nbytes; ++i) {
-//         d[i] = c;
-//     }
-// }

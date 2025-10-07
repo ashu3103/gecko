@@ -7,12 +7,15 @@ static int CountNumDigits(int line);
 static std::string GenerateNSpaces(int n);
 
 namespace errors {
+    /* Definition of the global error flags */
     bool has_errors = false;
-
+    ErrorType error_status = ErrorType::NO_ERROR;
+    /* Helper function to report errors at a specific position */
     void ReportError(ErrorType err_type, position::Pos pos, std::string msg)
     {
-        // set has errors flag
+        /* set has errors flags */
         has_errors = true;
+        error_status = err_type;
 
         int line = pos.GetLineNumber();
         int col = pos.GetColumnNumber();
@@ -23,7 +26,9 @@ namespace errors {
     }
 }
 
-static int CountNumDigits(int line) {
+/* count the number of digits in a number string */
+static int
+CountNumDigits(int line) {
     int count = 0;
     while(line)
     {
@@ -33,7 +38,9 @@ static int CountNumDigits(int line) {
     return count;
 }
 
-static std::string GenerateNSpaces(int n) {
+/* generate n whitespaces, used to align message with the printing format */
+static std::string
+GenerateNSpaces(int n) {
     std::string n_spaces = "";
     for (int i = 0; i < n; i++)
     {
@@ -42,6 +49,8 @@ static std::string GenerateNSpaces(int n) {
     return n_spaces;
 }
 
+/* Get the exact line given the line number */
+// TODO(ashu3103): may create some overheads
 static std::string
 GetLineFromOffset(position::Pos pos, int lineno)
 {
@@ -50,16 +59,22 @@ GetLineFromOffset(position::Pos pos, int lineno)
         throw std::runtime_error("Could not open file: " + pos.filepath);
     }
 
-    std::string line;
+    std::string line = "";
     int currentLine = 1;
 
     // Read line by line until we reach the desired one
     while (std::getline(file, line)) {
         if (currentLine == lineno) {
-            return line;
+            break;
         }
         currentLine++;
     }
 
-    throw std::out_of_range("Line number exceeds total lines in file");
+    file.close();
+    
+    if (lineno > currentLine)
+    {
+        throw std::out_of_range("Line number exceeds total lines in file");
+    }
+    return line;
 }

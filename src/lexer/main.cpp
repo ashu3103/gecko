@@ -11,11 +11,11 @@ int main(int argc, char* argv[]) {
     }
     
     scanner::Scanner snr(argv[1]);
-    if (!snr.src.in.is_open())
-    {
-        std::cerr << "error opening file" << std::endl;
-        return 1;
-    }
+    // if (!snr.src.in.is_open())
+    // {
+    //     std::cerr << "error opening file" << std::endl;
+    //     return 1;
+    // }
     while (snr.NextToken());
 
     std::cout << "Streaming tokens" << std::endl;

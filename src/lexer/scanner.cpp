@@ -11,8 +11,6 @@ namespace scanner {
 
     Token::~Token() {}
 
-    // bool Token::IsKeyword(std::string tok)
-
     /* Function definitions for Scanner  */
     Scanner::Scanner(std::string filepath): src(filepath)
     {
@@ -30,7 +28,7 @@ namespace scanner {
     {
         src.Stop();
         /* skip whitespaces */
-        while(src.chr == ' ' || src.chr == '\t' || src.chr == '\n' || src.chr == '\r')
+        while(src.GetCurrentChr() == ' ' || src.GetCurrentChr() == '\t' || src.GetCurrentChr() == '\n' || src.GetCurrentChr() == '\r')
         {
             src.NextChr();
         }
@@ -39,14 +37,14 @@ namespace scanner {
         start_off = src.GetCurrentOffset();
 
         /* possible identifier */
-        if (isalpha(src.chr))
+        if (isalpha(src.GetCurrentChr()))
         {
             src.NextChr();
             Ident();   
             return true;
         }
 
-        switch (src.chr) {
+        switch (src.GetCurrentChr()) {
             case SENTINEL:     // EOF
                 tokens.push_back(Token(TokenType::_EOF, "EOF", start_off, src.GetCurrentOffset()));
                 return false;
@@ -106,7 +104,7 @@ namespace scanner {
             case '!':
                 src.NextChr();
                 end_off = src.GetCurrentOffset();
-                if (src.chr == '=')
+                if (src.GetCurrentChr() == '=')
                 {
                     src.NextChr();
                     tokens.push_back(Token(TokenType::_BANG_EQUAL, "!=", start_off, end_off));
@@ -119,7 +117,7 @@ namespace scanner {
             case '>':
                 src.NextChr();
                 end_off = src.GetCurrentOffset();
-                if (src.chr == '=')
+                if (src.GetCurrentChr() == '=')
                 {
                     src.NextChr();
                     tokens.push_back(Token(TokenType::_GREATER_EQUAL, ">=", start_off, end_off));
@@ -132,7 +130,7 @@ namespace scanner {
             case '<':
                 src.NextChr();
                 end_off = src.GetCurrentOffset();
-                if (src.chr == '=')
+                if (src.GetCurrentChr() == '=')
                 {
                     src.NextChr();
                     tokens.push_back(Token(TokenType::_LESS_EQUAL, "<=", start_off, end_off));
@@ -145,7 +143,7 @@ namespace scanner {
             case '=':
                 src.NextChr();
                 end_off = src.GetCurrentOffset();
-                if (src.chr == '=')
+                if (src.GetCurrentChr() == '=')
                 {
                     src.NextChr();
                     tokens.push_back(Token(TokenType::_EQUAL_EQUAL, "==", start_off, end_off));
@@ -168,7 +166,7 @@ namespace scanner {
         std::string token = "";
         TokenType type = _IDENTIFIER;
         // read till a character/digit is encountered
-        while (isalpha(src.chr) || isdigit(src.chr))
+        while (isalpha(src.GetCurrentChr()) || isdigit(src.GetCurrentChr()))
         {
             src.NextChr();
         }
@@ -189,15 +187,15 @@ namespace scanner {
         std::string token = "";
         TokenType type = _NUMBER;
         // read till a character is encountered
-        while (isdigit(src.chr))
+        while (isdigit(src.GetCurrentChr()))
         {
             src.NextChr();
         }
 
-        if (src.chr == '.')
+        if (src.GetCurrentChr() == '.')
         {
             src.NextChr();
-            while (isdigit(src.chr)) {
+            while (isdigit(src.GetCurrentChr())) {
                 src.NextChr();
             }
         }
@@ -221,16 +219,16 @@ namespace scanner {
 
         for (;;)
         {
-            if (src.chr == SENTINEL) {     // EOF error
+            if (src.GetCurrentChr() == SENTINEL) {     // EOF error
                 errors::ReportError(errors::ErrorType::UNEXPECTED_END_OF_FILE, position::Pos(start_off, src.GetCurrentOffset()), "Unexpected EOF encountered");
                 ok = false;
                 break;
-            } else if (src.chr == '\n') {  // newline error
+            } else if (src.GetCurrentChr() == '\n') {  // newline error
                 src.NextChr();
                 errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), "Invalid newline character encountered");
                 ok = false;
                 break;
-            } else if (src.chr == '"') {
+            } else if (src.GetCurrentChr() == '"') {
                 src.NextChr();
                 end_off = src.GetCurrentOffset() - 1;
                 tokens.push_back(Token(TokenType::_STRING, src.Segment(), start_off, end_off));

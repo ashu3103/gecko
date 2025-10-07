@@ -10,16 +10,18 @@
 namespace errors {
     /* Enum to categorize different types of syntax errors */
     enum class ErrorType {
+        NO_ERROR,
         UNEXPECTED_TOKEN,       // a token mismatch in an expression
         MISSING_TOKEN,          // a token missing to finish a statement
         INVALID_SYNTAX,         
         UNEXPECTED_END_OF_FILE,
-        INVALID_CHARACTER,
+        INVALID_CHARACTER,      // lexer error, if any invalid character is encountered
         // Add more error types as needed
     };
 
-    /* tracks the global errors */
+    /* error flags */
     extern bool has_errors;
+    extern ErrorType error_status;
 
     /**
      * filing a complaint with details

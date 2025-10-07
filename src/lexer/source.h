@@ -27,7 +27,6 @@ Segment is nothing but the substring of buffer read from the point `b`
 
 namespace source {
     class Source {
-        public:
         std::fstream in;
 
         // indices
@@ -60,6 +59,7 @@ namespace source {
             c = content;
             c_len = e - s;
         }
+        public:
 
             Source(std::string filepath);
             ~Source();
@@ -79,6 +79,9 @@ namespace source {
 
             /* get the current file offset */
             size_t GetCurrentOffset();
+
+            /* get the current character read */
+            unsigned char GetCurrentChr();
     };
 }
 

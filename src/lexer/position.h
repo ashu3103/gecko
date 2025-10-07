@@ -8,9 +8,12 @@
 namespace position {
     class Pos {
         public:
-            inline static std::vector<size_t> line_offsets = {};
-            inline static std::string filepath = "";
+            /* file context (unique for each file scanned) */
+            /* inline is used to initialize the static fields, otherwise they won't be allocated and therefore marked by linker as undefined */
+            inline static std::vector<size_t> line_offsets = {}; /* capture the line offsets */
+            inline static std::string filepath = "";             /* capture the file path to be scanned */
 
+            /* should be called explicitely by the scanner constructor */
             static void InitFileContext(std::string fp)
             {
                 filepath = fp;
@@ -18,6 +21,7 @@ namespace position {
                 line_offsets.push_back(0);
             }
 
+            /* should be called explicitely by the scanner deconstructor */
             static void ResetFileContext()
             {
                 filepath = "";
