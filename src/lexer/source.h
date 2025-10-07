@@ -61,7 +61,7 @@ namespace source {
             c_len = e - s;
         }
 
-            Source(std::fstream&& in);
+            Source(std::string filepath);
             ~Source();
 
             void Start();

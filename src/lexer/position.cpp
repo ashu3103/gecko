@@ -10,38 +10,13 @@ namespace position {
 
     Pos::~Pos() {}
 
-    /* Manipulate File Context fields */
-    void Pos::AddLineOffset(size_t off) {
-        this->line_offsets.push_back(off);
-    }
-
-    void Pos::InitFileContext(std::string fname) {
-        if (this->initialized)
-        {
-            // TODO:error
-        }
-
-        this->filename = fname;
-        this->line_offsets.clear();
-
-        /* first line starts at offset 0 */
-        line_offsets.push_back(0);
-        this->initialized = true;
-    }
-
-    void Pos::ResetFileContext() {
-        this->filename.clear();
-        this->line_offsets.clear();
-        this->initialized = false;
-    }
-
     /* Get the position of the token */
     int Pos::GetLineNumber() {
-        return GetLineIndex(this->start_offset, this->line_offsets) + 1;
+        return GetLineIndex(this->start_offset, Pos::line_offsets) + 1;
     }
 
     int Pos::GetColumnNumber() {
-        int line_off = this->line_offsets[GetLineIndex(this->start_offset, this->line_offsets)];
+        int line_off = line_offsets[GetLineIndex(this->start_offset, Pos::line_offsets)];
         return start_offset - line_off + 1;
     }
 }

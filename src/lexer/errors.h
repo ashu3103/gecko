@@ -4,6 +4,7 @@
 #include "position.h"
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 namespace errors {
@@ -13,34 +14,21 @@ namespace errors {
         MISSING_TOKEN,          // a token missing to finish a statement
         INVALID_SYNTAX,         
         UNEXPECTED_END_OF_FILE,
+        INVALID_CHARACTER,
         // Add more error types as needed
     };
 
-    class Error {
-        bool has_errors = false;
+    /* tracks the global errors */
+    extern bool has_errors;
 
-        bool GetHasErrors()
-        {
-            return this->has_errors;
-        }
-
-        void SetHasErrors(bool val)
-        {
-            this->has_errors = val;
-        }
-
-    public:
-        Error();
-        ~Error();
-        /**
-         * filing a complaint with details
-         * @param err_type The error type
-         * @param pos The position of the token
-         * @param msg The message to be printed
-         * @param filename The translational unit
-         */
-        void ReportError(ErrorType err_type, position::Pos pos, std::string msg);
-    };
+    /**
+     * filing a complaint with details
+     * @param err_type The error type
+     * @param pos The position of the token
+     * @param msg The message to be printed
+     * @param filename The translational unit
+     */
+    void ReportError(ErrorType err_type, position::Pos pos, std::string msg);
 }
 
 #endif // ERRORS_H

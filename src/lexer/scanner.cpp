@@ -1,4 +1,5 @@
 #include "scanner.h"
+#include "errors.h"
 
 namespace scanner {
     /* Function definitions for Token */
@@ -13,14 +14,17 @@ namespace scanner {
     // bool Token::IsKeyword(std::string tok)
 
     /* Function definitions for Scanner  */
-    Scanner::Scanner(std::fstream&& in): src(std::move(in))
+    Scanner::Scanner(std::string filepath): src(filepath)
     {
+        position::Pos::InitFileContext(filepath);
         start_off = 0;
         end_off = 0;
         this->tokens.clear();
     }
 
-    Scanner::~Scanner() {}
+    Scanner::~Scanner() {
+        position::Pos::ResetFileContext();
+    }
 
     bool Scanner::NextToken()
     {
@@ -52,7 +56,6 @@ namespace scanner {
                 String(ok);
                 if (!ok)
                 {
-                    // TODO(ashu3103): error
                     return false;
                 }
                 break;
@@ -153,7 +156,8 @@ namespace scanner {
                 }
                 break;
             default:
-                break;
+                errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), "Invalid character encountered");
+                return false;
         }
 
         return true;
@@ -218,10 +222,12 @@ namespace scanner {
         for (;;)
         {
             if (src.chr == SENTINEL) {     // EOF error
+                errors::ReportError(errors::ErrorType::UNEXPECTED_END_OF_FILE, position::Pos(start_off, src.GetCurrentOffset()), "Unexpected EOF encountered");
                 ok = false;
                 break;
             } else if (src.chr == '\n') {  // newline error
                 src.NextChr();
+                errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), "Invalid newline character encountered");
                 ok = false;
                 break;
             } else if (src.chr == '"') {

@@ -113,7 +113,7 @@ namespace scanner {
             source::Source src;
             std::vector<Token> tokens;
 
-            Scanner(std::fstream&& in);
+            Scanner(std::string filepath);
             ~Scanner();
 
             bool NextToken();

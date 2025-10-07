@@ -1,4 +1,5 @@
 #include "source.h"
+#include "position.h"
 #include <iostream>
 
 static size_t NextSize(size_t c_sz);
@@ -6,8 +7,12 @@ static void MemCopy(void* dst, const void* src, size_t nbytes);
 // static void Memset(void* buf, int c, size_t nbytes);
 
 namespace source {
-    Source::Source(std::fstream&& in) {
-        this->in = std::move(in);
+    Source::Source(std::string filepath) {
+        this->in = std::fstream(filepath, std::ios::in | std::ios::binary);
+        if (!this->in.is_open())
+        {
+            throw std::runtime_error("Could not open file: " + filepath);
+        }
 
         this->b = -1;
         this->r = 0;
@@ -109,7 +114,12 @@ namespace source {
     void Source::NextChr()
     {
         this->offset += this->chw;
-        
+
+        if (this->chr == '\n')
+        {
+            position::Pos::AddLineOffset(this->offset + 1);
+        }
+
         /* Try filling more bytes to buffer */
         if (this->e == this->r)
             Source::Fill();
