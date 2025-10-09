@@ -1,5 +1,5 @@
-#ifndef POSITION_H
-#define POSITION_H
+#ifndef __POSITION_H__
+#define __POSITION_H__
 
 #include <iostream>
 #include <string>
@@ -44,4 +44,4 @@ namespace position {
     };
 }
 
-#endif // END_H
+#endif // __POSITION_H__

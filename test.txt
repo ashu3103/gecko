@@ -1,11 +1,5 @@
-fun addPair(a, b) {
-  return a + b;
-}
-
-fun identity(a) {
+fun {
   return a;
-}
-
-"ass fuck"
-
-print identity(addPair)(1, 2);
+} $
+$$
+id = 1; #$

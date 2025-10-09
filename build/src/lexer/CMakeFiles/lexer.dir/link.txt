@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -shared -Wl,-soname,liblexer.so.1 -o liblexer.so.1.0.0 CMakeFiles/lexer.dir/scanner.cpp.o CMakeFiles/lexer.dir/source.cpp.o CMakeFiles/lexer.dir/token.cpp.o  -Wl,-rpath,/home/ashu3103/Desktop/gecko/build/src/internal: ../internal/libinternal.so.1.0.0 

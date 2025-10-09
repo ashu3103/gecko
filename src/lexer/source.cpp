@@ -1,5 +1,5 @@
-#include "source.h"
-#include "position.h"
+#include <source.h>
+#include <position/position.h>
 #include <iostream>
 
 static size_t NextSize(size_t c_sz);
@@ -124,7 +124,7 @@ namespace source {
 
         if (this->chr == '\n')
         {
-            position::Pos::AddLineOffset(this->offset + 1);
+            position::Pos::AddLineOffset(this->offset);
         }
 
         /* Try filling more bytes to buffer */

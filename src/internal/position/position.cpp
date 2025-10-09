@@ -1,4 +1,4 @@
-#include "position.h"
+#include <position/position.h>
 
 static int GetLineIndex(size_t off, std::vector<size_t>& line_offs);
 namespace position {

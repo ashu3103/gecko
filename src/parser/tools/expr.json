@@ -1,0 +1,38 @@
+{
+    "directive": "__EXPR_H__",
+    "namespace": "ast",
+    "filename": "expr",
+    "basename": "Expr",
+    "classes": [
+        {
+            "name": "Binary",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "left"
+                },
+                {
+                    "type": "token::Token",
+                    "name": "oper"
+                },
+                {
+                    "type": "Expr",
+                    "name": "right"
+                }
+            ]
+        },
+        {
+          "name": "Unary",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "mid"
+                },
+                {
+                    "type": "token::Token",
+                    "name": "oper"
+                }
+            ]  
+        }
+    ]
+}

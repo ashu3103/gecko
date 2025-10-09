@@ -1,16 +1,7 @@
-#include "scanner.h"
-#include "errors.h"
+#include <scanner.h>
+#include <error/errors.h>
 
 namespace scanner {
-    /* Function definitions for Token */
-    Token::Token(TokenType type, std::string tok, size_t s_off, size_t e_off): pos(s_off, e_off)
-    {
-        this->type = type;
-        this->tok = tok;
-    }
-
-    Token::~Token() {}
-
     /* Function definitions for Scanner  */
     Scanner::Scanner(std::string filepath): src(filepath)
     {
@@ -93,6 +84,10 @@ namespace scanner {
                 src.NextChr();
                 tokens.push_back(Token(TokenType::_RIGHT_BRACE, "}", start_off, start_off));
                 break;
+            case '.':
+                src.NextChr();
+                tokens.push_back(Token(TokenType::_DOT, ",", start_off, start_off));
+                break;
             case ',':
                 src.NextChr();
                 tokens.push_back(Token(TokenType::_COMMA, ",", start_off, start_off));
@@ -154,8 +149,9 @@ namespace scanner {
                 }
                 break;
             default:
+                src.NextChr();
                 errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), "Invalid character encountered");
-                return false;
+                break;
         }
 
         return true;
@@ -226,7 +222,7 @@ namespace scanner {
             } else if (src.GetCurrentChr() == '\n') {  // newline error
                 src.NextChr();
                 errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), "Invalid newline character encountered");
-                ok = false;
+                // ok = false;
                 break;
             } else if (src.GetCurrentChr() == '"') {
                 src.NextChr();

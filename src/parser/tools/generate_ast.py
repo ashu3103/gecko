@@ -1,0 +1,314 @@
+import os
+import json
+import io
+
+HEADER_EXTENSION = ".h"
+FILE_EXTENSION = ".cpp"
+
+INDENT = 0
+
+## Libraries to include
+LIBRARIES_TO_INCLUDE = [
+    'iostream',
+    'gtype.h',
+    'token.h'
+]
+
+SCRIPT_DIRECTORY = os.getcwd()
+PARSER_DIRECTORY = os.path.dirname(SCRIPT_DIRECTORY)
+
+## write directive start
+def WriteDirectiveStart(file: io.TextIOWrapper, directive: str):
+    file.write(f'#ifndef {directive}\n')
+    file.write(f'#define {directive}\n')
+
+## write directive end
+def WriteDirectiveEnd(file: io.TextIOWrapper, directive: str):
+    file.write(f'#endif //{directive}\n')
+
+## write newline characters
+def WriteNewline(file: io.TextIOWrapper):
+    file.write('\n')
+
+## write indent
+def WriteIndentation(file: io.TextIOWrapper):
+    global INDENT
+    for i in range(INDENT):
+        file.write('\t')
+
+def WriteLine(file: io.TextIOWrapper, line: str):
+    global INDENT
+    WriteIndentation(file)
+    file.write(line)
+    WriteNewline(file)
+
+## write libraries included
+def WriteIncludeLibraries(file: io.TextIOWrapper):
+    for lib in LIBRARIES_TO_INCLUDE:
+        file.write(f'#include <{lib}>\n')
+
+## write the forward declaration of derived classes
+def WriteForwardDeclaration(file: io.TextIOWrapper, classes: list):
+    for i, cls in enumerate(classes):
+        cls_name = cls['name']
+        WriteLine(file, f'class {cls_name};')
+
+## write the base class
+def WriteBaseClass(file: io.TextIOWrapper, basename: str, classes: list):
+    global INDENT
+    WriteLine(file, f'template <typename Derived>')
+    WriteLine(file, f'class {basename} {{')
+    INDENT = INDENT + 1
+
+    WriteLine(file, f'public:')
+    INDENT = INDENT + 1
+
+    WriteLine(file, f'template <typename R>')
+    WriteLine(file, f'class Visitor {{')
+    INDENT = INDENT + 1
+
+    for i, cls in enumerate(classes):
+        cls_name = cls['name']
+        WriteLine(file, f'virtual R visit{cls_name}{basename}({cls_name}* expr) = 0;')
+
+    WriteLine(file, f'virtual ~Visitor() = default;')
+    INDENT = INDENT - 1
+
+    WriteLine(file, f'}};')
+    WriteLine(file, f'virtual ~{basename}() = default;')
+
+    WriteLine(file, f'template <typename R>')
+    WriteLine(file, f'R acceptVirtual(Visitor<R>& visitor) {{')
+    INDENT = INDENT + 1
+    WriteLine(file, f'static_cast<Derived*>(this)->accept(visitor);')
+    INDENT = INDENT - 1
+    WriteLine(file, f'}}')
+
+    INDENT = INDENT - 2
+    WriteLine(file, f'}};')
+
+## write the data fields
+def WriteDataFields(file: io.TextIOWrapper, fields: list):
+    for i, field in enumerate(fields):
+        WriteLine(file, f'{field['type']} {field['name']};')
+    WriteNewline(file)
+
+## write the constructor
+def WriteDerivedClassConstructor(file: io.TextIOWrapper, cls_name: str, fields: list):
+    params = ""
+    for i, field in enumerate(fields):
+        if (i == 0):
+            params = params + field['type'] + " " + field['name']
+        else:
+            params = params + ", " + field['type'] + " " + field['name']
+    WriteLine(file, f'{cls_name}({params});')
+    WriteNewline(file)
+
+## write the accept implementation
+def WriteAccept(file: io.TextIOWrapper):
+    WriteLine(file, f'template <typename R>')
+    WriteLine(file, f'R accept(Visitor<R>& vis);')
+
+## write the derived class
+def WriteDerivedClass(file: io.TextIOWrapper, basename: str, cls: dict):
+    global INDENT
+    cls_name = cls['name']
+    fields = cls['fields']
+
+    WriteLine(file, f'class {cls_name}: public {basename}<{cls_name}> {{')
+    INDENT = INDENT + 1
+    WriteLine(file, f'public:')
+    INDENT = INDENT + 1
+    ## data fields
+    WriteDataFields(file, fields)
+    ## constructor
+    WriteDerivedClassConstructor(file, cls_name, fields)
+    ## accept implementation
+    WriteAccept(file)
+
+    INDENT = INDENT - 2
+    WriteLine(file, f'}};')
+    
+## write the header file
+def WriteHeaderFile(file: io.TextIOWrapper, data: dict):
+    global INDENT
+    basename = data['basename']
+    directive = data['directive']
+    namespace = data['namespace']
+    classes = data['classes']
+
+    WriteDirectiveStart(file, directive)
+
+    ## Include Libraries
+    WriteNewline(file)
+    WriteIncludeLibraries(file)
+    WriteNewline(file)
+
+    ## Create the namespace
+    WriteLine(file, f'namespace {namespace} {{\n')
+    INDENT = INDENT + 1
+
+    ## Create the forward declaration
+    WriteForwardDeclaration(file, classes)
+    WriteNewline(file)
+    ## Create the base class
+    WriteBaseClass(file, basename, classes)
+    WriteNewline(file)
+
+    ## Create Derived Classes
+    for i, cls in enumerate(classes):
+        WriteDerivedClass(file, basename, cls)
+        WriteNewline(file)
+
+    INDENT = INDENT - 1
+    WriteLine(file, f'}}')
+    WriteNewline(file)
+    WriteDirectiveEnd(file, directive)
+
+## write derived class constructor definition
+def WriteDerivedClassConstructorDef(file: io.TextIOWrapper, cls_name: str, fields: list):
+    params = ""
+    member_init_list = ""
+    for i, field in enumerate(fields):
+        if (i == 0):
+            params = params + field['type'] + " " + field['name']
+            member_init_list = member_init_list + field['name'] + "(" + field['name'] + ")"
+        else:
+            params = params + ", " + field['type'] + " " + field['name']
+            member_init_list = member_init_list + ", " + field['name'] + "(" + field['name'] + ")"
+    WriteLine(file, f'{cls_name}::{cls_name}({params}): {member_init_list} {{')
+    WriteLine(file, f'}}')
+    WriteNewline(file)
+
+## write the accept definition
+def WriteAcceptDef(file: io.TextIOWrapper, basename: str, cls_name: str):
+    global INDENT
+    WriteLine(file, f'template <typename R>')
+    WriteLine(file, f'R {cls_name}::accept(Visitor<R>& visitor) {{')
+    INDENT = INDENT + 1
+    WriteLine(file, f'return visitor.visit{cls_name}{basename}(this);')
+    INDENT = INDENT - 1
+    WriteLine(file, f'}}')
+
+## write definitions
+def WriteDefinition(file: io.TextIOWrapper, header: str,  data: dict):
+    global INDENT
+    namespace = data['namespace']
+    basename = data['basename']
+    classes = data['classes']
+    ## Include the header file
+    WriteLine(file, f'#include <{header}>')
+    WriteNewline(file)
+    ## Create the namespace
+    file.write(f'namespace {namespace} {{\n')
+    INDENT = INDENT + 1
+
+    for i, cls in enumerate(classes):
+        cls_name = cls['name']
+        fields = cls['fields']
+        ## Constructor Definition
+        WriteDerivedClassConstructorDef(file, cls_name, fields)
+        WriteAcceptDef(file, basename, cls_name)
+        WriteNewline(file)
+    
+    INDENT = INDENT - 1
+    WriteLine(file, f'}}')
+
+## define an abstraction of AST
+def DefineAST(data: dict):
+    global PARSER_DIRECTORY
+    # Extract values
+    filename = data['filename']
+    dir = PARSER_DIRECTORY
+
+    file = os.path.join(dir, filename)
+    header_file = file + HEADER_EXTENSION
+    definition_file = file + FILE_EXTENSION
+    ## Write Header files
+    try:
+        with open(header_file, 'w+') as hf:
+            WriteHeaderFile(hf, data)
+
+        with open(definition_file, 'w+') as df:
+            WriteDefinition(df, filename + HEADER_EXTENSION, data)
+    except Exception as e:
+        print(f'Error while defining AST for {filename}: {e}')
+
+## Validate the json schema
+def ValidateJSONFormat(data, filename: str):
+    ## Level 1: top level
+    if not isinstance(data, dict):
+        raise TypeError(f"Root of {filename} must be a JSON object")
+    
+    # Required top level fields
+    required_top_fields = ["directive", "namespace", "filename", "basename", "classes"]
+    for field in required_top_fields:
+        if field not in data:
+            raise ValueError(f"Missing top-level field '{field}' in {filename}")
+
+    # directive, basename, namespace, filename, must be a str
+    if not isinstance(data["directive"], str):
+        raise TypeError(f"'directive' must be a string in {filename}")
+    
+    if not isinstance(data["namespace"], str):
+        raise TypeError(f"'namespace' must be a string in {filename}")
+    
+    if not isinstance(data["filename"], str):
+        raise TypeError(f"'filename' must be a string in {filename}")
+    
+    if not isinstance(data["basename"], str):
+        raise TypeError(f"'basename' must be a string in {filename}")
+
+    # classes must be a list
+    if not isinstance(data["classes"], list):
+        raise TypeError(f"'classes' must be a list in {filename}")    
+    
+    ## Level 2: inside each class
+    for i, cls in enumerate(data["classes"]):
+        if not isinstance(cls, dict):
+            raise TypeError(f"Class entry #{i} in {filename} must be an object")
+
+        if "name" not in cls or "fields" not in cls:
+            raise ValueError(f"Each class in {filename} must have 'name' and 'fields' keys")
+
+        if not isinstance(cls["name"], str):
+            raise TypeError(f"'name' of class #{i} in {filename} must be a string")
+
+        if not isinstance(cls["fields"], list):
+            raise TypeError(f"'fields' of class '{cls['name']}' in {filename} must be a list")
+        
+        # Level 3: inside each field object
+        for j, field in enumerate(cls["fields"]):
+            if not isinstance(field, dict):
+                raise TypeError(f"Field #{j} in class '{cls['name']}' must be an object")
+
+            required_field_keys = ["type", "name"]
+            for key in required_field_keys:
+                if key not in field:
+                    raise ValueError(f"Field #{j} in class '{cls['name']}' missing '{key}' key in {filename}")
+
+                if not isinstance(field[key], str):
+                    raise TypeError(
+                        f"'{key}' in field #{j} of class '{cls['name']}' must be a string in {filename}"
+                    )
+
+if __name__ == "__main__":
+    ## Scan all the json file in the current directory
+    for filename in os.listdir(SCRIPT_DIRECTORY):
+        if filename.endswith(".json"):
+            file_path = os.path.join(SCRIPT_DIRECTORY, filename)
+            try:
+                with open(file_path, 'r') as f:
+                    data = json.load(f)
+                    ## validate the json schema
+                    ValidateJSONFormat(data, file_path)
+                    ## define AST abstract classes
+                    DefineAST(data)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON in {filename}: {e}")
+            except FileNotFoundError:
+                print(f"File not found: {filename}")
+            except (ValueError, TypeError) as e:
+                print(f"Schema validation failed for {filename}: {e}")
+            except Exception as e:
+                print(f"Unexpected error in {filename}: {e}")

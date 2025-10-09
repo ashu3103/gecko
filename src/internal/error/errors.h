@@ -1,7 +1,7 @@
-#ifndef ERRORS_H
-#define ERRORS_H
+#ifndef __ERRORS_H__
+#define __ERRORS_H__
 
-#include "position.h"
+#include <position/position.h>
 
 #include <iostream>
 #include <fstream>
@@ -33,4 +33,4 @@ namespace errors {
     void ReportError(ErrorType err_type, position::Pos pos, std::string msg);
 }
 
-#endif // ERRORS_H
+#endif // __ERRORS_H__

@@ -1,4 +1,4 @@
-#include "errors.h"
+#include <error/errors.h>
 
 #define NUM_LINE_DIGITS 5
 
@@ -22,7 +22,7 @@ namespace errors {
 
         std::cout << pos.filepath << ":" << line << ":" << col << ": " << msg << std::endl;
         std::cout << GenerateNSpaces(NUM_LINE_DIGITS - CountNumDigits(line)) << line << " |   " << GetLineFromOffset(pos, line) << std::endl;
-        std:: cout << GenerateNSpaces(NUM_LINE_DIGITS) << " |   "  << GenerateNSpaces(col) << "^~~~~" << std::endl;
+        std:: cout << GenerateNSpaces(NUM_LINE_DIGITS) << " |   "  << GenerateNSpaces(col - 1) << "^~~~~" << std::endl;
     }
 }
 

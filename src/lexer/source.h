@@ -12,8 +12,8 @@ It contains three indices that are used to access the buffer.
 Segment is nothing but the substring of buffer read from the point `b`
 */
 
-#ifndef SOURCE_H
-#define SOURCE_H
+#ifndef __SOURCE_H__
+#define __SOURCE_H__
 
 #include <iostream>  // remove this
 #include <vector>
@@ -86,4 +86,4 @@ namespace source {
 }
 
 
-#endif // SOURCE_H
+#endif // __SOURCE_H__
