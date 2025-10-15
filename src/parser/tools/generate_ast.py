@@ -5,7 +5,10 @@ import io
 HEADER_EXTENSION = ".h"
 FILE_EXTENSION = ".cpp"
 
+BUFFER_SIZE = 100 * 1024
+
 INDENT = 0
+OUT = ""
 
 ## Libraries to include
 LIBRARIES_TO_INCLUDE = [
@@ -17,97 +20,124 @@ LIBRARIES_TO_INCLUDE = [
 SCRIPT_DIRECTORY = os.getcwd()
 PARSER_DIRECTORY = os.path.dirname(SCRIPT_DIRECTORY)
 
+def AppendOrFlush(file: io.TextIOWrapper, stmts: str):
+    global OUT
+    global BUFFER_SIZE
+
+    if (len(OUT) + len(stmts) >= BUFFER_SIZE):
+        file.write(OUT)
+        OUT = stmts
+    else:
+        OUT = OUT + stmts
+
 ## write directive start
 def WriteDirectiveStart(file: io.TextIOWrapper, directive: str):
-    file.write(f'#ifndef {directive}\n')
-    file.write(f'#define {directive}\n')
+    st = ''
+    st = st + Line(f'#ifndef {directive}')
+    st = st + Line(f'#define {directive}')
+    AppendOrFlush(file, st)
 
 ## write directive end
 def WriteDirectiveEnd(file: io.TextIOWrapper, directive: str):
-    file.write(f'#endif //{directive}\n')
+    st = ''
+    st = st + Line(f'#endif //{directive}')
+    AppendOrFlush(file, st)
 
 ## write newline characters
-def WriteNewline(file: io.TextIOWrapper):
-    file.write('\n')
+def Newline() -> str:
+    return '\n'
 
 ## write indent
-def WriteIndentation(file: io.TextIOWrapper):
+def Indentation() -> str:
     global INDENT
+    st = ""
     for i in range(INDENT):
-        file.write('\t')
+        st = st + '\t'
+    return st
 
-def WriteLine(file: io.TextIOWrapper, line: str):
-    global INDENT
-    WriteIndentation(file)
-    file.write(line)
-    WriteNewline(file)
+def Line(line: str) -> str:
+    return f'{Indentation()}{line}{Newline()}'
 
 ## write libraries included
 def WriteIncludeLibraries(file: io.TextIOWrapper):
+    st = ''
     for lib in LIBRARIES_TO_INCLUDE:
-        file.write(f'#include <{lib}>\n')
+        st = st + Line(f'#include <{lib}>')
+    AppendOrFlush(file, st)
 
 ## write the forward declaration of derived classes
 def WriteForwardDeclaration(file: io.TextIOWrapper, classes: list):
+    st = ''
     for i, cls in enumerate(classes):
         cls_name = cls['name']
-        WriteLine(file, f'class {cls_name};')
+        st = st + Line(f'class {cls_name};')
+    AppendOrFlush(file, st)
 
 ## write the base class
 def WriteBaseClass(file: io.TextIOWrapper, basename: str, classes: list):
     global INDENT
-    WriteLine(file, f'template <typename Derived>')
-    WriteLine(file, f'class {basename} {{')
+
+    st = ''
+    st = st + Line(f'template <typename Derived>')
+    st = st + Line(f'class {basename} {{')
     INDENT = INDENT + 1
 
-    WriteLine(file, f'public:')
+    st = st + Line(f'public:')
     INDENT = INDENT + 1
 
-    WriteLine(file, f'template <typename R>')
-    WriteLine(file, f'class Visitor {{')
+    st = st + Line(f'template <typename R>')
+    st = st + Line(f'class Visitor {{')
     INDENT = INDENT + 1
 
     for i, cls in enumerate(classes):
         cls_name = cls['name']
-        WriteLine(file, f'virtual R visit{cls_name}{basename}({cls_name}* expr) = 0;')
+        st = st + Line(f'virtual R visit{cls_name}{basename}({cls_name}* expr) = 0;')
 
-    WriteLine(file, f'virtual ~Visitor() = default;')
+    st = st + Line(f'virtual ~Visitor() = default;')
     INDENT = INDENT - 1
 
-    WriteLine(file, f'}};')
-    WriteLine(file, f'virtual ~{basename}() = default;')
+    st = st + Line(f'}};')
+    st = st + Line(f'virtual ~{basename}() = default;')
 
-    WriteLine(file, f'template <typename R>')
-    WriteLine(file, f'R acceptVirtual(Visitor<R>& visitor) {{')
+    st = st + Line(f'template <typename R>')
+    st = st + Line(f'R acceptVirtual(Visitor<R>& visitor) {{')
     INDENT = INDENT + 1
-    WriteLine(file, f'static_cast<Derived*>(this)->accept(visitor);')
+    st = st + Line(f'static_cast<Derived*>(this)->accept(visitor);')
     INDENT = INDENT - 1
-    WriteLine(file, f'}}')
+    st = st + Line(f'}}')
 
     INDENT = INDENT - 2
-    WriteLine(file, f'}};')
+    st = st + Line(f'}};')
+
+    AppendOrFlush(file, st)
 
 ## write the data fields
 def WriteDataFields(file: io.TextIOWrapper, fields: list):
+    st = ''
     for i, field in enumerate(fields):
-        WriteLine(file, f'{field['type']} {field['name']};')
-    WriteNewline(file)
+        st = st + Line(f'{field['type']} {field['name']};')
+    st = st + Newline()
+    AppendOrFlush(file, st)
 
 ## write the constructor
 def WriteDerivedClassConstructor(file: io.TextIOWrapper, cls_name: str, fields: list):
-    params = ""
+    params = ''
+    st = ''
     for i, field in enumerate(fields):
         if (i == 0):
             params = params + field['type'] + " " + field['name']
         else:
             params = params + ", " + field['type'] + " " + field['name']
-    WriteLine(file, f'{cls_name}({params});')
-    WriteNewline(file)
+    st = st + Line(f'{cls_name}({params});')
+    st = st + Newline()
+    AppendOrFlush(file, st)
 
 ## write the accept implementation
 def WriteAccept(file: io.TextIOWrapper):
-    WriteLine(file, f'template <typename R>')
-    WriteLine(file, f'R accept(Visitor<R>& vis);')
+    st = ''
+    st = st + Line(f'template <typename R>')
+    st = st + Line(f'R accept(Visitor<R>& vis);')
+    AppendOrFlush(file, st)
 
 ## write the derived class
 def WriteDerivedClass(file: io.TextIOWrapper, basename: str, cls: dict):
@@ -115,9 +145,9 @@ def WriteDerivedClass(file: io.TextIOWrapper, basename: str, cls: dict):
     cls_name = cls['name']
     fields = cls['fields']
 
-    WriteLine(file, f'class {cls_name}: public {basename}<{cls_name}> {{')
+    AppendOrFlush(file, Line(f'class {cls_name}: public {basename}<{cls_name}> {{'))
     INDENT = INDENT + 1
-    WriteLine(file, f'public:')
+    AppendOrFlush(file, Line(f'public:'))
     INDENT = INDENT + 1
     ## data fields
     WriteDataFields(file, fields)
@@ -127,80 +157,88 @@ def WriteDerivedClass(file: io.TextIOWrapper, basename: str, cls: dict):
     WriteAccept(file)
 
     INDENT = INDENT - 2
-    WriteLine(file, f'}};')
+    AppendOrFlush(file, Line(f'}};'))
     
 ## write the header file
 def WriteHeaderFile(file: io.TextIOWrapper, data: dict):
     global INDENT
+
     basename = data['basename']
     directive = data['directive']
     namespace = data['namespace']
     classes = data['classes']
 
     WriteDirectiveStart(file, directive)
-
     ## Include Libraries
-    WriteNewline(file)
+    AppendOrFlush(file, Newline())
     WriteIncludeLibraries(file)
-    WriteNewline(file)
+
+    AppendOrFlush(file, Newline())
 
     ## Create the namespace
-    WriteLine(file, f'namespace {namespace} {{\n')
+    AppendOrFlush(file, Line(f'namespace {namespace} {{'))
     INDENT = INDENT + 1
 
     ## Create the forward declaration
     WriteForwardDeclaration(file, classes)
-    WriteNewline(file)
+    AppendOrFlush(file, Newline())
+
     ## Create the base class
     WriteBaseClass(file, basename, classes)
-    WriteNewline(file)
+    AppendOrFlush(file, Newline())
 
     ## Create Derived Classes
     for i, cls in enumerate(classes):
         WriteDerivedClass(file, basename, cls)
-        WriteNewline(file)
+        AppendOrFlush(file, Newline())
 
     INDENT = INDENT - 1
-    WriteLine(file, f'}}')
-    WriteNewline(file)
+    AppendOrFlush(file, Line(f'}}'))
+    AppendOrFlush(file, Newline())
     WriteDirectiveEnd(file, directive)
 
 ## write derived class constructor definition
 def WriteDerivedClassConstructorDef(file: io.TextIOWrapper, cls_name: str, fields: list):
-    params = ""
-    member_init_list = ""
+    params = ''
+    st = ''
+    member_init_list = ''
     for i, field in enumerate(fields):
         if (i == 0):
-            params = params + field['type'] + " " + field['name']
+            params = params + field['type'] + ' ' + field['name']
             member_init_list = member_init_list + field['name'] + "(" + field['name'] + ")"
         else:
-            params = params + ", " + field['type'] + " " + field['name']
-            member_init_list = member_init_list + ", " + field['name'] + "(" + field['name'] + ")"
-    WriteLine(file, f'{cls_name}::{cls_name}({params}): {member_init_list} {{')
-    WriteLine(file, f'}}')
-    WriteNewline(file)
+            params = params + ", " + field['type'] + ' ' + field['name']
+            member_init_list = member_init_list + ', ' + field['name'] + "(" + field['name'] + ")"
+    st = st + Line(f'{cls_name}::{cls_name}({params}): {member_init_list} {{')
+    st = st + Line(f'}}')
+    st = st + Newline()
+
+    AppendOrFlush(file, st)
 
 ## write the accept definition
 def WriteAcceptDef(file: io.TextIOWrapper, basename: str, cls_name: str):
     global INDENT
-    WriteLine(file, f'template <typename R>')
-    WriteLine(file, f'R {cls_name}::accept(Visitor<R>& visitor) {{')
+    st = ''
+    st = st + Line(f'template <typename R>')
+    st = st + Line(f'R {cls_name}::accept(Visitor<R>& visitor) {{')
     INDENT = INDENT + 1
-    WriteLine(file, f'return visitor.visit{cls_name}{basename}(this);')
+    st = st + Line(f'return visitor.visit{cls_name}{basename}(this);')
     INDENT = INDENT - 1
-    WriteLine(file, f'}}')
+    st = st + Line(f'}}')
+    AppendOrFlush(file, st)
 
 ## write definitions
 def WriteDefinition(file: io.TextIOWrapper, header: str,  data: dict):
     global INDENT
+
     namespace = data['namespace']
     basename = data['basename']
     classes = data['classes']
     ## Include the header file
-    WriteLine(file, f'#include <{header}>')
-    WriteNewline(file)
+    AppendOrFlush(file, Line(f'#include <{header}>'))
+    AppendOrFlush(file, Newline())
     ## Create the namespace
-    file.write(f'namespace {namespace} {{\n')
+    AppendOrFlush(file, Line(f'namespace {namespace} {{'))
     INDENT = INDENT + 1
 
     for i, cls in enumerate(classes):
@@ -209,14 +247,16 @@ def WriteDefinition(file: io.TextIOWrapper, header: str,  data: dict):
         ## Constructor Definition
         WriteDerivedClassConstructorDef(file, cls_name, fields)
         WriteAcceptDef(file, basename, cls_name)
-        WriteNewline(file)
+        AppendOrFlush(file, Newline())
     
     INDENT = INDENT - 1
-    WriteLine(file, f'}}')
+    AppendOrFlush(file, Line(f'}}'))
 
 ## define an abstraction of AST
 def DefineAST(data: dict):
     global PARSER_DIRECTORY
+    global OUT
+
     # Extract values
     filename = data['filename']
     dir = PARSER_DIRECTORY
@@ -226,11 +266,15 @@ def DefineAST(data: dict):
     definition_file = file + FILE_EXTENSION
     ## Write Header files
     try:
+        OUT = ''
         with open(header_file, 'w+') as hf:
             WriteHeaderFile(hf, data)
+            hf.write(OUT)
 
+        OUT = ''
         with open(definition_file, 'w+') as df:
             WriteDefinition(df, filename + HEADER_EXTENSION, data)
+            df.write(OUT)
     except Exception as e:
         print(f'Error while defining AST for {filename}: {e}')
 

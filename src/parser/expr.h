@@ -6,7 +6,6 @@
 #include <token.h>
 
 namespace ast {
-
 	class Binary;
 	class Unary;
 
