@@ -15,6 +15,4 @@ endif()
 
 # Add library subdirectories
 add_subdirectory(lib/core)
-add_subdirectory(src/internal)
-add_subdirectory(src/lexer)
-add_subdirectory(src/parser)
+add_subdirectory(src)
