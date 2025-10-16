@@ -12,18 +12,25 @@ For now, we are going to worry about only a handful of expressions:
 - Parentheses. A pair of ( and ) wrapped around an expression.
 
 ```
-expression     → literal
-               | unary
-               | binary
-               | grouping ;
-
-literal        → NUMBER | STRING | "true" | "false" | "nil" ;
-grouping       → "(" expression ")" ;
-unary          → ( "-" | "!" ) expression ;
-binary         → expression operator expression ;
-operator       → "==" | "!=" | "<" | "<=" | ">" | ">="
-               | "+"  | "-"  | "*" | "/" ;
+expression     → equality ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary
+               | primary ;
+primary        → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" ;
 ```
 
+### Associativity
+
+| Name | Oerator | Associates |
+|:---|:---:|---:|
+| Equality | ==, != | Left |
+| Comparison | >, >=, <, <= | Left |
+| Term | -, + | Left |
+| Factor | /, * | Left |
+| Unary | !, - | Right |
 
 
