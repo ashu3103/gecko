@@ -8,7 +8,7 @@
             "name": "Binary",
             "fields": [
                 {
-                    "type": "Expr",
+                    "type": "Expr<R>*",
                     "name": "left"
                 },
                 {
@@ -16,23 +16,41 @@
                     "name": "oper"
                 },
                 {
-                    "type": "Expr",
+                    "type": "Expr<R>*",
                     "name": "right"
                 }
             ]
         },
         {
-          "name": "Unary",
+            "name": "Unary",
             "fields": [
                 {
-                    "type": "Expr",
-                    "name": "mid"
+                    "type": "Expr<R>*",
+                    "name": "right"
                 },
                 {
                     "type": "token::Token",
                     "name": "oper"
                 }
             ]  
+        },
+        {
+            "name": "Grouping",
+            "fields": [
+                {
+                    "type": "Expr<R>*",
+                    "name": "expr"
+                }
+            ]
+        },
+        {
+            "name": "Literal",
+            "fields": [
+                {
+                    "type": "core::gtype",
+                    "name": "lit"
+                }
+            ]
         }
     ]
 }
