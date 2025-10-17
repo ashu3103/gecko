@@ -64,7 +64,7 @@ namespace source {
             b = this->b;
         }
         
-        this->GetBufferContent(b, this->e, content, content_length);
+        this->GetBufferContent(b, this->e, &content, content_length);
         // Check the need to grow the buffer
         if (this->buffer_length <= content_length*2) {
             new_size = NextSize(sz);

@@ -43,7 +43,7 @@ namespace source {
         int chw;            // width of the latest character read (if read 1, otherwise 0)
 
         /* content length is from b to e excluding e */
-        void GetBufferContent(int s, int e, unsigned char* &c, size_t &c_len) {
+        void GetBufferContent(int s, int e, unsigned char** c, size_t &c_len) {
             if (e - s <= 0)
             {
                 c_len = 0;
@@ -52,11 +52,11 @@ namespace source {
             }
             // TODO: assert buffer is not nil
             unsigned char* content = new unsigned char[e - s];
-            for (int i = s; i < b; ++i) {
-                content[i] = this->buffer[i];
+            for (int i = s; i < e; ++i) {
+                content[i - s] = this->buffer[i];
             }
 
-            c = content;
+            *c = content;
             c_len = e - s;
         }
         public:
