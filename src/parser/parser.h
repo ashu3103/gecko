@@ -1,35 +1,37 @@
-#include <iostream>
-#include <token.h>
-#include <vector>
+// #include <iostream>
+// #include <token.h>
+// #include <expr.h>
+// #include <vector>
 
-using namespace token;
+// using namespace token;
 
-std::vector<TokenType> stopset = {
-    TokenType::_BREAK,
-    TokenType::_CONTINUE,
-    TokenType::_FOR,
-    TokenType::_IF,
-    TokenType::_RETURN,
-    TokenType::_SEMICOLON,
-    TokenType::_VAR,
-    TokenType::_WHILE,
-};
+// std::vector<TokenType> stopset = {
+//     TokenType::_BREAK,
+//     TokenType::_CONTINUE,
+//     TokenType::_FOR,
+//     TokenType::_IF,
+//     TokenType::_RETURN,
+//     TokenType::_SEMICOLON,
+//     TokenType::_VAR,
+//     TokenType::_WHILE,
+// };
 
-namespace ast {
-    class Parser {
-            std::vector<Token> tokens = {};
-            int current = 0;
-            bool fnest = false;
+// namespace ast {
+//     class Parser {
+//         public:
+//             std::vector<Token> tokens = {};
+//             int current = 0;
+//             bool fnest = false;
+//             Parser(std::vector<Token>&t);
+//             ~Parser();
 
-        public:
-            Parser(std::vector<Token>&t);
-            ~Parser();
+//             bool Match(std::vector<TokenType> matchList);
+//             void Advance(std::vector<TokenType> followList);
 
-            bool Match(std::vector<TokenType> matchList);
-            void Advance(std::vector<TokenType> followList);
+//             bool Got(TokenType type);
+//             void Want(TokenType type);
 
-            bool Got(TokenType type);
-            void Want(TokenType type);
-
-    };
-}
+//             template <typename R>
+//             Expr<R>* Expression();
+//     };
+// }

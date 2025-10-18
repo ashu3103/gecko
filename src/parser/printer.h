@@ -1,18 +1,19 @@
 #include <iostream>
 #include <expr.h>
+#include <variant>
+#include <type_traits>
 #include <string>
 
 namespace ast {
-    class AstPrinter: public Visitor<std::string>
+    class AstPrinter
     {
         public:
-            std::string visitBinaryExpr(Binary<std::string>* expr) override;
+            std::string operator()(Binary* &);
+            std::string operator()(Unary*&);
+            std::string operator()(Literal*&);
+            std::string operator()(Grouping*&);
 
-            std::string visitUnaryExpr(Unary<std::string>* expr) override;
-
-            std::string visitGroupingExpr(Grouping<std::string>* expr) override;
-
-            std::string visitLiteralExpr(Literal<std::string>* expr) override;
+            std::string print(Expr &expr);
 
         private:
             // Helper to make (operator left right) style strings
@@ -24,9 +25,5 @@ namespace ast {
                 return result;
             }
 
-            std::string print(Expr<std::string>* expr)
-            {
-                return expr->accept(*this);
-            }
     };
 }

@@ -1,23 +1,29 @@
 #include <printer.h>
 
 namespace ast {
-    std::string AstPrinter::visitBinaryExpr(Binary<std::string>* expr)
+    std::string AstPrinter::operator()(Binary* &expr)
     {
-        return parenthesize(expr->oper.tok, expr->left, expr->right);
+        return parenthesize(expr->oper.tok, expr->lhs, expr->rhs);
     }
 
-    std::string AstPrinter::visitGroupingExpr(Grouping<std::string>* expr)
+    std::string AstPrinter::operator()(Grouping* &expr)
     {
         return parenthesize("group", expr->expr);
     }
 
-    std::string AstPrinter::visitUnaryExpr(Unary<std::string>* expr)
+    std::string AstPrinter::operator()(Unary* &expr)
     {
-        return parenthesize(expr->oper.tok, expr->right);
+        return parenthesize(expr->oper.tok, expr->rhs);
     }
 
-    std::string AstPrinter::visitLiteralExpr(Literal<std::string>* expr)
+    std::string AstPrinter::operator()(Literal* &expr)
     {
-        return parenthesize(core::stringify(expr->lit));
+        return parenthesize(expr->value);
     }
+
+    std::string AstPrinter::print(Expr &expr)
+    {
+        return std::visit(*this, expr);
+    }
+
 }
