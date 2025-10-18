@@ -21,6 +21,11 @@ namespace ast {
         return parenthesize(expr->value);
     }
 
+    std::string AstPrinter::operator()(Noop* &expr)
+    {
+        return parenthesize("noop");
+    }
+
     std::string AstPrinter::print(Expr &expr)
     {
         return std::visit(*this, expr);

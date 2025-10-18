@@ -12,6 +12,7 @@ namespace ast {
             std::string operator()(Unary*&);
             std::string operator()(Literal*&);
             std::string operator()(Grouping*&);
+            std::string operator()(Noop*&);
 
             std::string print(Expr &expr);
 

@@ -24,12 +24,11 @@ int main(int argc, char* argv[])
         std::cout << tokens[i].tok << std::endl;
     }
 
-    ast::Expr lhs = new ast::Literal("1");
-    ast::Expr rhs = new ast::Literal("2");
-    ast::Expr root = new ast::Binary(lhs, token::Token(_PLUS, "+", 0, 0), rhs);
+    ast::Parser parser(tokens);
+    ast::Expr root = parser.Expression();
 
     ast::AstPrinter printer;
-    std::cout << printer.print(root) << std::endl;;
+    std::cout << printer.print(root) << std::endl;
 
     return 0;
 }

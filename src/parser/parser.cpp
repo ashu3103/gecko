@@ -98,17 +98,15 @@ static Expr comparision(Parser* p) {
 static Expr term(Parser* p)
 {
     Expr ex = factor(p);
-    printf("term expression address: %p\n", ex);
+
     while (p->Match({_PLUS, _DASH}))
     {
         Token tok = p->tokens[p->current];
         p->current++;
         std::cout << tok.tok << std::endl;
         Expr rhs = factor(p);
-        printf("term expression address: %p\n", rhs);
         ex = new Binary(ex, tok, rhs);
         p->current++;
-        printf("binary expression address: %p\n", ex);
     }
     return ex;
 }
@@ -144,10 +142,14 @@ static Expr unary(Parser* p)
                | "(" expression ")" ; */
 static Expr primary(Parser* p)
 {
-    Token tok = p->tokens[p->current++];
+    Token tok = p->tokens[p->current];
     
-    if (p->Match({_TRUE, _FALSE, _NIL, _NUMBER, _STRING})) return new Literal(tok.tok);
+    if (p->Match({_TRUE, _FALSE, _NIL, _NUMBER, _STRING})) {
+        p->current++;
+        return new Literal(tok.tok);
+    }
 
+    p->current++;
     if (tok.type == _LEFT_PAREN) {
         Expr expr = p->Expression();
         if (!p->Got(_RIGHT_PAREN))
