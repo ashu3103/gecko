@@ -13,7 +13,7 @@ OUT = ""
 ## Libraries to include
 LIBRARIES_TO_INCLUDE = [
     'iostream',
-    'gtype.h',
+    'variant',
     'token.h'
 ]
 
@@ -70,49 +70,45 @@ def WriteForwardDeclaration(file: io.TextIOWrapper, classes: list):
     st = ''
     for i, cls in enumerate(classes):
         cls_name = cls['name']
-        st = st + Line(f'template <typename R>')
-        st = st + Line(f'class {cls_name};')
+        st = st + Line(f'struct {cls_name};')
     AppendOrFlush(file, st)
 
-## write visitor
-def WriteVisitor(file: io.TextIOWrapper, basename: str, classes: list):
+## write variant
+def WriteVariant(file: io.TextIOWrapper, basename: str, classes: list):
     global INDENT
 
     st = ''
-    st = st + Line(f'template <typename R>')
-    st = st + Line(f'class Visitor {{')
-    INDENT = INDENT + 1
-    st = st + Line(f'public:')
-    INDENT = INDENT + 1
+    derived = ''
     for i, cls in enumerate(classes):
         cls_name = cls['name']
-        st = st + Line(f'virtual R visit{cls_name}{basename}({cls_name}<R>* expr) = 0;')
+        if i == 0:
+            derived = derived + f'{cls_name}*'
+        else:
+            derived = derived + f', {cls_name}*'
 
-    st = st + Line(f'virtual ~Visitor() = default;')
-    INDENT = INDENT - 2
+    st = st + Line(f'using {basename} = std::variant<{derived}>;')
 
-    st = st + Line(f'}};')
     AppendOrFlush(file, st)
 
 ## write the base class
-def WriteBaseClass(file: io.TextIOWrapper, basename: str, classes: list):
-    global INDENT
+# def WriteBaseClass(file: io.TextIOWrapper, basename: str, classes: list):
+#     global INDENT
 
-    st = ''
-    st = st + Line(f'template <typename R>')
-    st = st + Line(f'class {basename} {{')
-    INDENT = INDENT + 1
+#     st = ''
+#     st = st + Line(f'template <typename R>')
+#     st = st + Line(f'class {basename} {{')
+#     INDENT = INDENT + 1
 
-    st = st + Line(f'public:')
-    INDENT = INDENT + 1
+#     st = st + Line(f'public:')
+#     INDENT = INDENT + 1
 
-    st = st + Line(f'virtual ~{basename}() = default;')
-    st = st + Line(f'virtual R accept(Visitor<R>& visitor) = 0;')
+#     st = st + Line(f'virtual ~{basename}() = default;')
+#     st = st + Line(f'virtual R accept(Visitor<R>& visitor) = 0;')
 
-    INDENT = INDENT - 2
-    st = st + Line(f'}};')
+#     INDENT = INDENT - 2
+#     st = st + Line(f'}};')
 
-    AppendOrFlush(file, st)
+#     AppendOrFlush(file, st)
 
 ## write the data fields
 def WriteDataFields(file: io.TextIOWrapper, fields: list):
@@ -156,19 +152,14 @@ def WriteDerivedClass(file: io.TextIOWrapper, basename: str, cls: dict):
     cls_name = cls['name']
     fields = cls['fields']
 
-    AppendOrFlush(file, Line(f'template <typename R>'))
-    AppendOrFlush(file, Line(f'class {cls_name}: public {basename}<R> {{'))
-    INDENT = INDENT + 1
-    AppendOrFlush(file, Line(f'public:'))
+    AppendOrFlush(file, Line(f'struct {cls_name} {{'))
     INDENT = INDENT + 1
     ## data fields
     WriteDataFields(file, fields)
     ## constructor
     WriteDerivedClassConstructor(file, cls_name, fields)
-    ## accept implementation
-    WriteAccept(file, basename, cls_name)
 
-    INDENT = INDENT - 2
+    INDENT = INDENT - 1
     AppendOrFlush(file, Line(f'}};'))
     
 ## write the header file
@@ -195,9 +186,9 @@ def WriteHeaderFile(file: io.TextIOWrapper, data: dict):
     WriteForwardDeclaration(file, classes)
     AppendOrFlush(file, Newline())
 
-    WriteVisitor(file, basename, classes)
+    WriteVariant(file, basename, classes)
     ## Create the base class
-    WriteBaseClass(file, basename, classes)
+    # WriteBaseClass(file, basename, classes)
     AppendOrFlush(file, Newline())
 
     ## Create Derived Classes

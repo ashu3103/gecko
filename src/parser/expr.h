@@ -8,35 +8,46 @@
 namespace ast {
 	struct Binary;
 	struct Unary;
-	struct Literal;
 	struct Grouping;
+	struct Literal;
 
-	using Expr = std::variant<Binary*, Unary*, Literal*, Grouping*>;
+	using Expr = std::variant<Binary*, Unary*, Grouping*, Literal*>;
 
 	struct Binary {
 		Expr lhs;
 		token::Token oper;
 		Expr rhs;
-		Binary(Expr l, token::Token o, Expr r)
-        : lhs(l), oper(o), rhs(r) {}
+
+		Binary(Expr lhs, token::Token oper, Expr rhs): lhs(lhs), oper(oper), rhs(rhs) {
+		}
+
 	};
 
 	struct Unary {
 		token::Token oper;
 		Expr rhs;
-		Unary(token::Token o, Expr r)
-		: oper(o), rhs(r) {}
-	};
 
-	struct Literal {
-		std::string value;
-		explicit Literal(std::string v) : value(v) {}
+		Unary(token::Token oper, Expr rhs): oper(oper), rhs(rhs) {
+		}
+
 	};
 
 	struct Grouping {
 		Expr expr;
-		explicit Grouping(Expr e) : expr(e) {}
+
+		Grouping(Expr expr): expr(expr) {
+		}
+
 	};
+
+	struct Literal {
+		std::string value;
+
+		Literal(std::string value): value(value) {
+		}
+
+	};
+
 }
 
 #endif //__EXPR_H__
