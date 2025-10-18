@@ -120,6 +120,7 @@ def WriteDataFields(file: io.TextIOWrapper, fields: list):
 
 ## write the constructor
 def WriteDerivedClassConstructor(file: io.TextIOWrapper, cls_name: str, fields: list):
+    num_of_fields = len(fields)
     params = ''
     st = ''
     member_init_list = ''
@@ -130,9 +131,11 @@ def WriteDerivedClassConstructor(file: io.TextIOWrapper, cls_name: str, fields: 
         else:
             params = params + ", " + field['type'] + ' ' + field['name']
             member_init_list = member_init_list + ', ' + field['name'] + "(" + field['name'] + ")"
-    st = st + Line(f'{cls_name}({params}): {member_init_list} {{')
-    st = st + Line(f'}}')
-    st = st + Newline()
+    
+    if (num_of_fields):
+        st = st + Line(f'{cls_name}({params}): {member_init_list} {{}}')
+    else:
+        st = st + Line(f'{cls_name}({params}) {{}}')
     AppendOrFlush(file, st)
 
 ## write the accept implementation
