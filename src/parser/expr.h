@@ -10,42 +10,40 @@ namespace ast {
 	struct Unary;
 	struct Grouping;
 	struct Literal;
+	struct Noop;
 
-	using Expr = std::variant<Binary*, Unary*, Grouping*, Literal*>;
+	using Expr = std::variant<Binary*, Unary*, Grouping*, Literal*, Noop*>;
 
 	struct Binary {
 		Expr lhs;
 		token::Token oper;
 		Expr rhs;
 
-		Binary(Expr lhs, token::Token oper, Expr rhs): lhs(lhs), oper(oper), rhs(rhs) {
-		}
-
+		Binary(Expr lhs, token::Token oper, Expr rhs): lhs(lhs), oper(oper), rhs(rhs) {}
 	};
 
 	struct Unary {
 		token::Token oper;
 		Expr rhs;
 
-		Unary(token::Token oper, Expr rhs): oper(oper), rhs(rhs) {
-		}
-
+		Unary(token::Token oper, Expr rhs): oper(oper), rhs(rhs) {}
 	};
 
 	struct Grouping {
 		Expr expr;
 
-		Grouping(Expr expr): expr(expr) {
-		}
-
+		Grouping(Expr expr): expr(expr) {}
 	};
 
 	struct Literal {
 		std::string value;
 
-		Literal(std::string value): value(value) {
-		}
+		Literal(std::string value): value(value) {}
+	};
 
+	struct Noop {
+
+		Noop() {}
 	};
 
 }
