@@ -5,7 +5,7 @@
 
 using namespace token;
 
-std::vector<TokenType> stopset = {
+const std::vector<TokenType> stopset = {
     TokenType::_BREAK,
     TokenType::_CONTINUE,
     TokenType::_FOR,
@@ -22,7 +22,7 @@ namespace ast {
             std::vector<Token> tokens = {};
             int current = 0;
             bool fnest = false;
-            Parser(std::vector<Token>&t);
+            Parser(std::vector<Token> t);
             ~Parser();
 
             bool Match(std::vector<TokenType> matchList);
@@ -30,7 +30,9 @@ namespace ast {
 
             bool Got(TokenType type);
             void Want(TokenType type);
-
+            
+            Token Previous();
+            Token Current();
             Expr Expression();
     };
 }
