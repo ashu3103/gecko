@@ -14,7 +14,6 @@ int main(int argc, char* argv[])
     {
         exit(1);
     }
-
     // lexing
     scanner::Scanner sc(argv[1]);
     while (sc.NextToken());
@@ -26,7 +25,6 @@ int main(int argc, char* argv[])
 
     ast::Parser parser(tokens);
     ast::Expr root = parser.Expression();
-
     ast::AstPrinter printer;
     std::cout << printer.print(root) << std::endl;
 
