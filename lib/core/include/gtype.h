@@ -12,6 +12,11 @@ namespace core {
 
     /* Convert gtype to human readable format */
     std::string stringify(const gtype& value);
+    /* Convert string to gtype */
+    gtype get_value(const std::string& s);
+    /* compare types */
+    template <typename T, typename... Ts>
+    bool is_type(const std::variant<Ts...>& v);
     /* Comparision */
     bool equals(const gtype& a, const gtype& b);
 }
