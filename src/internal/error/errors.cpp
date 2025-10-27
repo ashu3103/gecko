@@ -9,6 +9,7 @@ static std::string GenerateNSpaces(int n);
 namespace errors {
     /* Definition of the global error flags */
     bool has_errors = false;
+    bool has_runtime_errors = false;
     ErrorType error_status = ErrorType::NO_ERROR;
     /* Helper function to report errors at a specific position */
     void ReportError(ErrorType err_type, position::Pos pos, std::string msg)
@@ -23,6 +24,19 @@ namespace errors {
         std::cout << pos.filepath << ":" << line << ":" << col << ": " << msg << std::endl;
         std::cout << GenerateNSpaces(NUM_LINE_DIGITS - CountNumDigits(line)) << line << " |   " << GetLineFromOffset(pos, line) << std::endl;
         std:: cout << GenerateNSpaces(NUM_LINE_DIGITS) << " |   "  << GenerateNSpaces(col - 1) << "^~~~~" << std::endl;
+    }
+    /* Helper function to generate runtime errors at a specific position */
+    std::string GenerateRuntimeError(ErrorType err_type, position::Pos pos, std::string msg)
+    {
+        has_runtime_errors = true;
+        error_status = err_type;
+
+        int line = pos.GetLineNumber();
+        int col = pos.GetColumnNumber();
+
+        std::string error = "";
+        error = error + errors::GenericErrMsg(err_type) + " " + pos.filepath + ":" + std::to_string(line) + ":" + std::to_string(col) + ": " + msg;
+        return error;
     }
 }
 
