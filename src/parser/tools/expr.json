@@ -3,6 +3,7 @@
     "namespace": "ast",
     "filename": "expr",
     "basename": "Expr",
+    "libs": ["iostream", "variant", "token.h"],
     "classes": [
         {
             "name": "Binary",

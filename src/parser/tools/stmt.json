@@ -1,0 +1,40 @@
+{
+    "directive": "__STMT_H__",
+    "namespace": "ast",
+    "filename": "stmt",
+    "basename": "Stmt",
+    "libs": ["iostream", "variant", "token.h", "expr.h"],
+    "classes": [
+        {
+            "name": "Expression",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "expr"
+                }
+            ]
+        },
+        {
+            "name": "Print",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "expr"
+                }
+            ]
+        },
+        {
+            "name": "Var",
+            "fields": [
+                {
+                    "type": "token::Token",
+                    "name": "name"
+                },
+                {
+                    "type": "Expr",
+                    "name": "initializer"
+                }
+            ]
+        }
+    ]
+}

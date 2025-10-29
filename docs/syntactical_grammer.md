@@ -20,7 +20,7 @@ factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+               | "(" expression ")" | IDENTIFIER;
 ```
 
 ### Associativity
@@ -34,3 +34,16 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 | Unary | !, - | Right |
 
 
+### Grammer of Statements
+
+```
+program        → declaration* EOF ;
+
+declaration    → varDecl
+               | statement ;
+
+statement      → exprStmt
+               | printStmt ;
+
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+```

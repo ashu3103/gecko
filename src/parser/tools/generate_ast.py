@@ -59,9 +59,9 @@ def Line(line: str) -> str:
     return f'{Indentation()}{line}{Newline()}'
 
 ## write libraries included
-def WriteIncludeLibraries(file: io.TextIOWrapper):
+def WriteIncludeLibraries(file: io.TextIOWrapper, libs: str):
     st = ''
-    for lib in LIBRARIES_TO_INCLUDE:
+    for lib in libs:
         st = st + Line(f'#include <{lib}>')
     AppendOrFlush(file, st)
 
@@ -173,11 +173,12 @@ def WriteHeaderFile(file: io.TextIOWrapper, data: dict):
     directive = data['directive']
     namespace = data['namespace']
     classes = data['classes']
+    libs = data['libs']
 
     WriteDirectiveStart(file, directive)
     ## Include Libraries
     AppendOrFlush(file, Newline())
-    WriteIncludeLibraries(file)
+    WriteIncludeLibraries(file, libs)
 
     AppendOrFlush(file, Newline())
 
@@ -272,7 +273,7 @@ def DefineAST(data: dict):
 
     file = os.path.join(dir, filename)
     header_file = file + HEADER_EXTENSION
-    definition_file = file + FILE_EXTENSION
+    # definition_file = file + FILE_EXTENSION
     ## Write Header files
     try:
         OUT = ''
@@ -294,7 +295,7 @@ def ValidateJSONFormat(data, filename: str):
         raise TypeError(f"Root of {filename} must be a JSON object")
     
     # Required top level fields
-    required_top_fields = ["directive", "namespace", "filename", "basename", "classes"]
+    required_top_fields = ["directive", "namespace", "filename", "basename", "libs", "classes"]
     for field in required_top_fields:
         if field not in data:
             raise ValueError(f"Missing top-level field '{field}' in {filename}")
@@ -311,6 +312,15 @@ def ValidateJSONFormat(data, filename: str):
     
     if not isinstance(data["basename"], str):
         raise TypeError(f"'basename' must be a string in {filename}")
+
+    # libs must be a list
+    if not isinstance(data["libs"], list):
+        raise TypeError(f"'libs' must be a list in {filename}")
+    
+    ## Level 2: inside each libs
+    for i, cls in enumerate(data['libs']):
+        if not isinstance(cls, str):
+            raise TypeError(f"Libs entry #{i} in {filename} must be string")
 
     # classes must be a list
     if not isinstance(data["classes"], list):
