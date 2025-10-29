@@ -10,9 +10,10 @@ namespace ast {
 	struct Unary;
 	struct Grouping;
 	struct Literal;
+	struct Variable;
 	struct Noop;
 
-	using Expr = std::variant<Binary*, Unary*, Grouping*, Literal*, Noop*>;
+	using Expr = std::variant<Binary*, Unary*, Grouping*, Literal*, Variable*, Noop*>;
 
 	struct Binary {
 		Expr lhs;
@@ -39,6 +40,12 @@ namespace ast {
 		std::string value;
 
 		Literal(std::string value): value(value) {}
+	};
+
+	struct Variable {
+		std::string name;
+
+		Variable(std::string name): name(name) {}
 	};
 
 	struct Noop {
