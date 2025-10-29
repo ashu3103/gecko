@@ -141,12 +141,16 @@ static Expr unary(Parser* p)
     return primary(p);
 }
 
-/* primary = NUMBER | STRING | "true" | "false" | "nil"
+/* primary = NUMBER | STRING | "true" | "false" | "nil" | IDENTIFIER
                | "(" expression ")" ; */
 static Expr primary(Parser* p)
 {   
     if (p->Got(_TRUE) || p->Got(_FALSE) || p->Got(_NUMBER) || p->Got(_STRING) || p->Got(_NIL)) {
         return new Literal(p->Previous().tok);
+    }
+
+    if (p->Got(_IDENTIFIER)) {
+        return new Variable(p->Previous().tok);
     }
 
     if (p->Got(_LEFT_PAREN)) {
