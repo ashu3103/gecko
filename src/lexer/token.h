@@ -62,6 +62,8 @@ enum TokenType {
     _EOF,
 };
 
+const std::vector<std::string> operatorMap = {"+", "-", "*", "/", "(", ")", "{", "}", ",", ";", ".", "!", "=", ">", "<", "!=", "==", ">=", "<="};
+
 const std::unordered_map<std::string, TokenType> keywordMap = {
     {"or", _OR},
     {"and", _AND},
@@ -98,6 +100,12 @@ namespace token {
             if (keywordMap.find(tok) != keywordMap.end()) {
                 return true;
             }
+            return false;
+        }
+
+        static bool IsOperator(TokenType type)
+        {
+            if (type > 0 && type < 20) return true;
             return false;
         }
     };

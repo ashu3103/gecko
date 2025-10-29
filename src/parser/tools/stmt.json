@@ -35,6 +35,12 @@
                     "name": "initializer"
                 }
             ]
+        },
+        {
+            "name": "Void",
+            "fields": [
+                
+            ]
         }
     ]
 }

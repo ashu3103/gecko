@@ -10,8 +10,9 @@ namespace ast {
 	struct Expression;
 	struct Print;
 	struct Var;
+	struct Void;
 
-	using Stmt = std::variant<Expression*, Print*, Var*>;
+	using Stmt = std::variant<Expression*, Print*, Var*, Void*>;
 
 	struct Expression {
 		Expr expr;
@@ -30,6 +31,11 @@ namespace ast {
 		Expr initializer;
 
 		Var(token::Token name, Expr initializer): name(name), initializer(initializer) {}
+	};
+
+	struct Void {
+
+		Void() {}
 	};
 
 }

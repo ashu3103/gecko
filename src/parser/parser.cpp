@@ -11,6 +11,13 @@ static Expr factor(Parser* p);
 static Expr unary(Parser* p);
 static Expr primary(Parser* p);
 
+/* Statement functions */
+static Stmt declaration(Parser* p);
+static Stmt varDecl(Parser* p);
+static Stmt statement(Parser* p);
+static Stmt printStatement(Parser* p);
+static Stmt exprStatement(Parser* p);
+
 namespace ast {
     Parser::Parser(std::vector<token::Token> t) {
         this->tokens = t;
@@ -64,18 +71,87 @@ namespace ast {
         return false;
     }
 
-    void Parser::Want(TokenType type) {
+    bool Parser::Want(TokenType type) {
         if (!Got(type))
         {
-            // report error
+            if (!Token::IsOperator(type))
+            {
+                throw std::runtime_error("operator type is desired");
+            }
+
+            std::string msg = "expected " + operatorMap[type] + ", got " + Current().tok;
+            errors::ReportError(errors::ErrorType::MISSING_TOKEN, Current().pos, msg);
             Advance({});
+            return false;
         }
+
+        return true;
     }
 
     Expr Parser::Expression() {
         return equality(this);
     }
 
+    Stmt Parser::Statement() {
+        return declaration(this);
+    }
+}
+
+/* declaration = varDecl | statement */
+static Stmt declaration(Parser* p) {
+    if (p->Got(_VAR)) return varDecl(p);
+    return statement(p);
+}
+
+static Stmt varDecl(Parser* p) {
+    if (p->Got(_IDENTIFIER))
+    {
+        Expr expr = new Noop();
+        if (p->Got(_EQUAL))
+        {
+            expr = p->Expression();
+        }
+
+        if (!p->Want(_SEMICOLON))
+        {
+            return new Void();
+        }
+        return new Var(p->Previous(), expr);
+    }
+
+    std::string msg = "exected an identifier got '" + p->Current().tok + "'";
+    errors::ReportError(errors::ErrorType::UNEXPECTED_TOKEN, p->Current().pos, msg);
+    p->Advance({});
+    return new Void();
+}
+
+static Stmt statement(Parser* p) {
+    if (p->Got(_PRINT))
+    {
+        return printStatement(p);
+    }
+
+    return exprStatement(p);
+}
+
+static Stmt printStatement(Parser* p)
+{
+    Expr e = p->Expression();
+    if (p->Want(_SEMICOLON))
+    {
+        return new Void();
+    }
+    return new Print(e);
+}
+
+static Stmt exprStatement(Parser* p)
+{
+    Expr e = p->Expression();
+    if (p->Want(_SEMICOLON))
+    {
+        return new Void();
+    }
+    return new Expression(e);
 }
 
 /* equality = comparision( (== | !=) comparision); */
@@ -170,6 +246,6 @@ static Expr primary(Parser* p)
 
     errors::ReportError(errors::ErrorType::UNEXPECTED_TOKEN, p->Current().pos, "Unexpected Token");
 error:
-    p->Advance();
+    p->Advance({});
     return new Noop();
 }

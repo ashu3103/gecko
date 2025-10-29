@@ -1,6 +1,7 @@
 #include <iostream>
 #include <token.h>
 #include <expr.h>
+#include <stmt.h>
 #include <vector>
 
 using namespace token;
@@ -29,10 +30,11 @@ namespace ast {
             void Advance(std::vector<TokenType> followList);
 
             bool Got(TokenType type);
-            void Want(TokenType type);
+            bool Want(TokenType type);
             
             Token Previous();
             Token Current();
             Expr Expression();
+            Stmt Statement();
     };
 }
