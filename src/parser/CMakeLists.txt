@@ -19,7 +19,7 @@ target_include_directories(parser
 )
 
 # Link other dependencies if needed (currently none)
-target_link_libraries(parser PUBLIC internal core lexer)
+target_link_libraries(parser PUBLIC internal lexer)
 
 # Installation (optional)
 include(GNUInstallDirs)

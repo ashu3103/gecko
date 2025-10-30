@@ -6,6 +6,7 @@
 #include <token.h>
 
 namespace ast {
+	struct Assign;
 	struct Binary;
 	struct Unary;
 	struct Grouping;
@@ -13,7 +14,14 @@ namespace ast {
 	struct Variable;
 	struct Noop;
 
-	using Expr = std::variant<Binary*, Unary*, Grouping*, Literal*, Variable*, Noop*>;
+	using Expr = std::variant<Assign*, Binary*, Unary*, Grouping*, Literal*, Variable*, Noop*>;
+
+	struct Assign {
+		token::Token name;
+		Expr value;
+
+		Assign(token::Token name, Expr value): name(name), value(value) {}
+	};
 
 	struct Binary {
 		Expr lhs;
@@ -43,9 +51,9 @@ namespace ast {
 	};
 
 	struct Variable {
-		std::string name;
+		token::Token name;
 
-		Variable(std::string name): name(name) {}
+		Variable(token::Token name): name(name) {}
 	};
 
 	struct Noop {

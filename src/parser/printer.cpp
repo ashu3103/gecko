@@ -1,7 +1,12 @@
 #include <printer.h>
-#include <gtype.h>
+#include <core/gtype.h>
 
 namespace ast {
+    std::string AstPrinter::operator()(Assign* &expr)
+    {
+        return parenthesize2("=", expr->name.tok, expr->value);
+    }
+
     std::string AstPrinter::operator()(Binary* &expr)
     {
         return parenthesize(expr->oper.tok, expr->lhs, expr->rhs);
@@ -29,7 +34,7 @@ namespace ast {
 
     std::string AstPrinter::operator()(Variable* &expr)
     {
-        return parenthesize(expr->name);
+        return parenthesize(expr->name.tok);
     }
 
     std::string AstPrinter::operator()(Expression* &stmt)

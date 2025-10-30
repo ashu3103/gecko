@@ -12,9 +12,10 @@ const std::vector<TokenType> stopset = {
     TokenType::_FOR,
     TokenType::_IF,
     TokenType::_RETURN,
-    TokenType::_SEMICOLON,
     TokenType::_VAR,
     TokenType::_WHILE,
+    TokenType::_EOF,
+    TokenType::_PRINT
 };
 
 namespace ast {
@@ -27,7 +28,7 @@ namespace ast {
             ~Parser();
 
             bool Match(std::vector<TokenType> matchList);
-            void Advance(std::vector<TokenType> followList);
+            void Advance();
 
             bool Got(TokenType type);
             bool Want(TokenType type);

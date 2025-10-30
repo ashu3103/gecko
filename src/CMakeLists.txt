@@ -6,4 +6,4 @@ add_subdirectory(parser)
 add_executable(gecko main.cpp)
 
 ## link the library
-target_link_libraries(gecko PUBLIC core internal lexer parser)
+target_link_libraries(gecko PUBLIC internal lexer parser)

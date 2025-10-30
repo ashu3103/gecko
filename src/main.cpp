@@ -24,9 +24,10 @@ int main(int argc, char* argv[])
     }
 
     ast::Parser parser(tokens);
-    ast::Expr root = parser.Expression();
+    // ast::Expr root = parser.Expression();
+    ast::Stmt stmt1 = parser.Statement();
     ast::AstPrinter printer;
-    std::cout << printer.print(root) << std::endl;
+    std::cout << printer.print(stmt1) << std::endl;
 
     return 0;
 }

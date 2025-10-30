@@ -16,5 +16,4 @@ endif()
 add_compile_options(-std=c++20)
 
 # Add library subdirectories
-add_subdirectory(lib/core)
 add_subdirectory(src)

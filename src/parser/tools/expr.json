@@ -6,6 +6,19 @@
     "libs": ["iostream", "variant", "token.h"],
     "classes": [
         {
+            "name": "Assign",
+            "fields": [
+                {
+                    "type": "token::Token",
+                    "name": "name"
+                },
+                {
+                    "type": "Expr",
+                    "name": "value"
+                }
+            ]
+        },
+        {
             "name": "Binary",
             "fields": [
                 {
@@ -57,7 +70,7 @@
             "name": "Variable",
             "fields": [
                 {
-                    "type": "std::string",
+                    "type": "token::Token",
                     "name": "name"
                 }
             ]

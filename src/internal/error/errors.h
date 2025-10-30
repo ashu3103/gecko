@@ -8,12 +8,6 @@
 #include <string>
 #include <unordered_map>
 
-const std::unordered_map<errors::ErrorType, std::string> errorStatusMap = {
-    {errors::ErrorType::INVALID_CHARACTER, "Invalid character"},
-    {errors::ErrorType::INVALID_OPERAND_TYPE, "Invalid operand type"},
-    {errors::ErrorType::DIVISION_BY_ZERO, "Division by zero"},
-};
-
 namespace errors {
     /* Enum to categorize different types of syntax errors */
     enum class ErrorType {
@@ -27,7 +21,15 @@ namespace errors {
         DIVISION_BY_ZERO,
         // Add more error types as needed
     };
+}
 
+const std::unordered_map<errors::ErrorType, std::string> errorStatusMap = {
+    {errors::ErrorType::INVALID_CHARACTER, "Invalid character"},
+    {errors::ErrorType::INVALID_OPERAND_TYPE, "Invalid operand type"},
+    {errors::ErrorType::DIVISION_BY_ZERO, "Division by zero"},
+};
+
+namespace errors {
     /* error flags */
     extern bool has_runtime_errors;
     extern bool has_errors;

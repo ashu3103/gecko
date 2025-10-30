@@ -1,4 +1,4 @@
-#include <gtype.h>
+#include <core/gtype.h>
 #include <cmath>
 
 namespace core {
@@ -18,12 +18,6 @@ namespace core {
         }
 
         return std::monostate{};
-    }
-
-    template <typename T, typename... Ts>
-    bool is_type(const std::variant<Ts...>& v)
-    {
-        return std::holds_alternative<T>(v);
     }
 
     std::string stringify(const gtype& value)

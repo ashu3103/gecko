@@ -1,9 +1,11 @@
 #include <parser.h>
+#include <core/gtype.h>
 #include <error/errors.h>
 
 using namespace ast;
 
 /* Expression functions */
+static Expr assignment(Parser* p);
 static Expr equality(Parser* p);
 static Expr comparision(Parser* p);
 static Expr term(Parser* p);
@@ -48,15 +50,8 @@ namespace ast {
         return false;
     }
 
-    void Parser::Advance(std::vector<TokenType> followList = {}) {
-        /* compute the  follow set */
-        followList.push_back(TokenType::_EOF);
-        for (int i = 0; i < stopset.size(); i++)
-        {
-            followList.push_back(stopset[i]);
-        }
-
-        while (!Match(followList))
+    void Parser::Advance() {
+        while (!Match(stopset))
         {
             current++;
         }
@@ -79,9 +74,9 @@ namespace ast {
                 throw std::runtime_error("operator type is desired");
             }
 
-            std::string msg = "expected " + operatorMap[type] + ", got " + Current().tok;
+            std::string msg = "expected a '" + operatorMap[type - 1] + "'";
             errors::ReportError(errors::ErrorType::MISSING_TOKEN, Current().pos, msg);
-            Advance({});
+            Advance();
             return false;
         }
 
@@ -89,7 +84,7 @@ namespace ast {
     }
 
     Expr Parser::Expression() {
-        return equality(this);
+        return assignment(this);
     }
 
     Stmt Parser::Statement() {
@@ -103,10 +98,13 @@ static Stmt declaration(Parser* p) {
     return statement(p);
 }
 
+/* varDecl = var IDENT (= expression)? ; */
 static Stmt varDecl(Parser* p) {
     if (p->Got(_IDENTIFIER))
     {
         Expr expr = new Noop();
+        Token ident = p->Previous();
+
         if (p->Got(_EQUAL))
         {
             expr = p->Expression();
@@ -116,15 +114,16 @@ static Stmt varDecl(Parser* p) {
         {
             return new Void();
         }
-        return new Var(p->Previous(), expr);
+        return new Var(ident, expr);
     }
 
-    std::string msg = "exected an identifier got '" + p->Current().tok + "'";
+    std::string msg = "expected an identifier got '" + p->Current().tok + "'";
     errors::ReportError(errors::ErrorType::UNEXPECTED_TOKEN, p->Current().pos, msg);
-    p->Advance({});
+    p->Advance();
     return new Void();
 }
 
+/* statement = printStatement | exprStatement ; */
 static Stmt statement(Parser* p) {
     if (p->Got(_PRINT))
     {
@@ -134,24 +133,47 @@ static Stmt statement(Parser* p) {
     return exprStatement(p);
 }
 
+/* printStatement = print expression */
 static Stmt printStatement(Parser* p)
 {
     Expr e = p->Expression();
-    if (p->Want(_SEMICOLON))
+
+    if (!p->Want(_SEMICOLON))
     {
         return new Void();
     }
     return new Print(e);
 }
 
+/* exprStatement = expression */
 static Stmt exprStatement(Parser* p)
 {
     Expr e = p->Expression();
-    if (p->Want(_SEMICOLON))
+
+    if (!p->Want(_SEMICOLON))
     {
         return new Void();
     }
     return new Expression(e);
+}
+
+/* assignment = IDENTIFIER "=" assignment | equality */
+static Expr assignment(Parser* p) {
+    Expr expr = equality(p);
+
+    if (p->Got(_EQUAL))
+    {
+        Expr value = assignment(p);
+
+        if (core::is_type<Variable*>(expr))
+        {
+            Token name = (std::get<Variable*>(expr))->name;
+            return new Assign(name, value);
+        }
+        // error
+    }
+
+    return expr;
 }
 
 /* equality = comparision( (== | !=) comparision); */
@@ -226,7 +248,7 @@ static Expr primary(Parser* p)
     }
 
     if (p->Got(_IDENTIFIER)) {
-        return new Variable(p->Previous().tok);
+        return new Variable(p->Previous());
     }
 
     if (p->Got(_LEFT_PAREN)) {
@@ -246,6 +268,6 @@ static Expr primary(Parser* p)
 
     errors::ReportError(errors::ErrorType::UNEXPECTED_TOKEN, p->Current().pos, "Unexpected Token");
 error:
-    p->Advance({});
+    p->Advance();
     return new Noop();
 }

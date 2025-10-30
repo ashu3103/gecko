@@ -14,9 +14,12 @@ namespace core {
     std::string stringify(const gtype& value);
     /* Convert string to gtype */
     gtype get_value(const std::string& s);
-    /* compare types */
+    /* compare types, defined here to avoid explicit declaration */
     template <typename T, typename... Ts>
-    bool is_type(const std::variant<Ts...>& v);
+    bool is_type(const std::variant<Ts...>& v)
+    {
+        return std::holds_alternative<T>(v);
+    }
     /* Comparision */
     bool equals(const gtype& a, const gtype& b);
 }

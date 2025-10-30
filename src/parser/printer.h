@@ -7,6 +7,7 @@ namespace ast {
     class AstPrinter
     {
         public:
+            std::string operator()(Assign* &);
             std::string operator()(Binary* &);
             std::string operator()(Unary* &);
             std::string operator()(Literal* &);
