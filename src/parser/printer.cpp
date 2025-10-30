@@ -1,4 +1,5 @@
 #include <printer.h>
+#include <gtype.h>
 
 namespace ast {
     std::string AstPrinter::operator()(Binary* &expr)
@@ -26,9 +27,43 @@ namespace ast {
         return parenthesize("noop");
     }
 
+    std::string AstPrinter::operator()(Variable* &expr)
+    {
+        return parenthesize(expr->name);
+    }
+
+    std::string AstPrinter::operator()(Expression* &stmt)
+    {
+        return print(stmt->expr);
+    }
+
+    std::string AstPrinter::operator()(Print* &stmt)
+    {
+        return parenthesize2("print", stmt->expr);
+    }
+
+    std::string AstPrinter::operator()(Var* &stmt)
+    {
+        if (core::is_type<Noop*>(stmt->initializer)) // var declaration doesn't have an initializer
+        {
+            return parenthesize2("var", stmt->name.tok);
+        }
+
+        return parenthesize2("var", stmt->name.tok, stmt->initializer);
+    }
+
+    std::string AstPrinter::operator()(Void* &expr)
+    {
+        return "void";
+    }
+
     std::string AstPrinter::print(Expr &expr)
     {
         return std::visit(*this, expr);
     }
 
+    std::string AstPrinter::print(Stmt &stmt)
+    {
+        return std::visit(*this, stmt);
+    }
 }
