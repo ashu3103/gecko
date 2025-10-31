@@ -2,272 +2,259 @@
 #include <core/gtype.h>
 #include <error/errors.h>
 
-using namespace ast;
+template <typename... Args>
+std::string Format(const Args&... args) {
+    std::string out = "";
+    (out = out + args);
+    return out;
+}
 
-/* Expression functions */
-static Expr assignment(Parser* p);
-static Expr equality(Parser* p);
-static Expr comparision(Parser* p);
-static Expr term(Parser* p);
-static Expr factor(Parser* p);
-static Expr unary(Parser* p);
-static Expr primary(Parser* p);
-
-/* Statement functions */
-static Stmt declaration(Parser* p);
-static Stmt varDecl(Parser* p);
-static Stmt statement(Parser* p);
-static Stmt printStatement(Parser* p);
-static Stmt exprStatement(Parser* p);
-
+/* public methods */
 namespace ast {
-    Parser::Parser(std::vector<token::Token> t) {
-        this->tokens = t;
+    Parser::Parser(std::vector<Token> t)
+    {
+        tokens.clear();
+        tokens = t;
+
+        current = 0;
     }
 
     Parser::~Parser() {
-        this->tokens.clear();
+        tokens.clear();
     }
 
-    Token Parser::Previous()
-    {
-        return this->tokens[this->current - 1];
-    }
-
-    Token Parser::Current()
-    {
-        return this->tokens[this->current];
-    }
-
-    bool Parser::Match(std::vector<TokenType> matchList)
-    {
-        for (int i = 0; i < matchList.size(); i++)
-        {
-            if (tokens[current].type == matchList[i])
-                return true;
+    std::vector<Stmt> Parser::Parse() {
+        std::vector<Stmt> statements = {};
+        while (!IsAtEnd()) {
+            statements.push_back(NewStatement());
         }
 
-        return false;
+        return statements;
     }
+}
 
-    void Parser::Advance() {
-        while (!Match(stopset))
+/* private helper methods */
+namespace ast {
+    bool Parser::Match(std::vector<TokenType> types) {
+        for (int i = 0; i < types.size(); i++)
         {
-            current++;
-        }
-    }
-
-    bool Parser::Got(TokenType type) {
-        if (current < tokens.size() && type == tokens[current].type)
-        {
-            current++;
-            return true;
-        }
-        return false;
-    }
-
-    bool Parser::Want(TokenType type) {
-        if (!Got(type))
-        {
-            if (!Token::IsOperator(type))
+            if (Check(types[i]))
             {
-                throw std::runtime_error("operator type is desired");
+                Advance();
+                return true;
             }
+        }
 
-            std::string msg = "expected a '" + operatorMap[type - 1] + "'";
-            errors::ReportError(errors::ErrorType::MISSING_TOKEN, Current().pos, msg);
+        return false;
+    }
+
+    // ensure that we are currently scanning the token of a particular type
+    Token Parser::Consume(TokenType type, std::string message) {
+        if (Check(type)) return Advance();
+
+        throw Error(errors::ErrorType::UNEXPECTED_TOKEN, Peek(), message);
+    }
+
+    // check if the current token is of particular type
+    bool Parser::Check(TokenType type) {
+        if (IsAtEnd()) return false;
+        return Peek().type == type;
+    }
+
+    // consider next token for scanning
+    Token Parser::Advance() {
+        if (!IsAtEnd()) current++;
+        return Previous();
+    }
+
+    // check if the parser has reached the end-of-file
+    bool Parser::IsAtEnd() {
+        return Peek().type == TokenType::_EOF;
+    }
+
+    // return the token currently under scanning
+    Token Parser::Peek() {
+        return tokens[current];
+    }
+
+    // return the last token that has been scanned
+    Token Parser::Previous() {
+        return tokens[current - 1];
+    }
+
+    ParserError Parser::Error(errors::ErrorType err_type, Token token, std::string msg) {
+        errors::ReportError(err_type, token.pos, msg);
+        return ParserError();
+    }
+
+    // Even in the event of an error, we want our parser to continue processing.
+    // For this, the parser will attempt to reach the next potential statement by scanning tokens 
+    // that indicate the beginning of a statement in the event that an error occurs while parsing 
+    // for a statement.
+    void Parser::Synchronize() {
+        Advance();
+        while (!IsAtEnd())
+        {
+            if (Previous().type == TokenType::_SEMICOLON) return;
+
+            switch (Peek().type) {
+                case TokenType::_CLASS:
+                case TokenType::_FUN:
+                case TokenType::_VAR:
+                case TokenType::_FOR:
+                case TokenType::_IF:
+                case TokenType::_WHILE:
+                case TokenType::_PRINT:
+                case TokenType::_RETURN:
+                    return;
+            }
             Advance();
-            return false;
         }
-
-        return true;
-    }
-
-    Expr Parser::Expression() {
-        return assignment(this);
-    }
-
-    Stmt Parser::Statement() {
-        return declaration(this);
     }
 }
 
-/* declaration = varDecl | statement */
-static Stmt declaration(Parser* p) {
-    if (p->Got(_VAR)) return varDecl(p);
-    return statement(p);
-}
+/* expressin parsing methods */
+namespace ast {
 
-/* varDecl = var IDENT (= expression)? ; */
-static Stmt varDecl(Parser* p) {
-    if (p->Got(_IDENTIFIER))
-    {
-        Expr expr = new Noop();
-        Token ident = p->Previous();
+    Stmt Parser::NewStatement() {
+        try {
+            if (Match({_VAR})) return VarDeclStmt();
+            if (Match({_PRINT})) return PrintStmt();
 
-        if (p->Got(_EQUAL))
-        {
-            expr = p->Expression();
-        }
-
-        if (!p->Want(_SEMICOLON))
-        {
+            return ExpressionStmt();
+        } catch (ParserError err) {
+            Synchronize();
             return new Void();
         }
-        return new Var(ident, expr);
     }
 
-    std::string msg = "expected an identifier got '" + p->Current().tok + "'";
-    errors::ReportError(errors::ErrorType::UNEXPECTED_TOKEN, p->Current().pos, msg);
-    p->Advance();
-    return new Void();
-}
+    Stmt Parser::VarDeclStmt() {
+        Token name = Consume(_IDENTIFIER, "Expect variable name.");
 
-/* statement = printStatement | exprStatement ; */
-static Stmt statement(Parser* p) {
-    if (p->Got(_PRINT))
-    {
-        return printStatement(p);
-    }
-
-    return exprStatement(p);
-}
-
-/* printStatement = print expression */
-static Stmt printStatement(Parser* p)
-{
-    Expr e = p->Expression();
-
-    if (!p->Want(_SEMICOLON))
-    {
-        return new Void();
-    }
-    return new Print(e);
-}
-
-/* exprStatement = expression */
-static Stmt exprStatement(Parser* p)
-{
-    Expr e = p->Expression();
-
-    if (!p->Want(_SEMICOLON))
-    {
-        return new Void();
-    }
-    return new Expression(e);
-}
-
-/* assignment = IDENTIFIER "=" assignment | equality */
-static Expr assignment(Parser* p) {
-    Expr expr = equality(p);
-
-    if (p->Got(_EQUAL))
-    {
-        Expr value = assignment(p);
-
-        if (core::is_type<Variable*>(expr))
-        {
-            Token name = (std::get<Variable*>(expr))->name;
-            return new Assign(name, value);
+        Expr initializer = new Noop();
+        if (Match({_EQUAL})) {
+            initializer = NewExpression();
         }
-        // error
+
+        Consume(_SEMICOLON, "Expect ';' after variable declaration.");
+        return new Var(name, initializer);
+    }
+    
+    Stmt Parser::ExpressionStmt() {
+        Expr value = NewExpression();
+        Consume(_SEMICOLON, "Expect ';' after value.");
+        return new Expression(value);
     }
 
-    return expr;
-}
+    Stmt Parser::PrintStmt() {
+        Expr value = NewExpression();
+        Consume(_SEMICOLON, "Expect ';' after value.");
+        return new Print(value);
+    }
 
-/* equality = comparision( (== | !=) comparision); */
-static Expr equality(Parser* p) {
-    Expr lhs = comparision(p);
-    if (p->Got(_BANG_EQUAL) || p->Got(_EQUAL_EQUAL))
+    Expr Parser::NewExpression()
     {
-        Token tok = p->Previous();
-        Expr rhs = comparision(p);
-        return new Binary(lhs, tok, rhs);
-    }
-    return lhs;
-}
-
-/* comparision = term (( < | <= | > | >= ) term); */
-static Expr comparision(Parser* p) {
-    Expr lhs = term(p);
-    if (p->Got(_LESS) || p->Got(_LESS_EQUAL) || p->Got(_GREATER) || p->Got(_GREATER_EQUAL))
-    {
-        Token tok = p->Previous();
-        Expr rhs = term(p);
-        return new Binary(lhs, tok, rhs);
-    }
-    return lhs;
-}
-
-/* term = factor ((+ | -) factor)*; */
-static Expr term(Parser* p)
-{
-    Expr ex = factor(p);
-
-    while (p->Got(_PLUS) || p->Got(_DASH))
-    {
-        Token tok = p->Previous();
-        Expr rhs = factor(p);
-        ex = new Binary(ex, tok, rhs);
-    }
-    return ex;
-}
-
-/* factor = unary ((* | /) unary)*; */
-static Expr factor(Parser* p)
-{
-    Expr ex = unary(p);
-    while (p->Got(_STAR) || p->Got(_SLASH))
-    {
-        Token tok = p->Previous();
-        Expr rhs = unary(p);
-        ex = new Binary(ex, tok, rhs);
-    }
-    return ex;
-}
-
-/* uanry = (! | -) unary | primary; */
-static Expr unary(Parser* p)
-{
-    if (p->Got(_DASH) || p->Got(_BANG))
-    {
-        Token tok = p->Previous();
-        Expr rhs = unary(p);
-        return new Unary(tok, rhs);
-    }
-    return primary(p);
-}
-
-/* primary = NUMBER | STRING | "true" | "false" | "nil" | IDENTIFIER
-               | "(" expression ")" ; */
-static Expr primary(Parser* p)
-{   
-    if (p->Got(_TRUE) || p->Got(_FALSE) || p->Got(_NUMBER) || p->Got(_STRING) || p->Got(_NIL)) {
-        return new Literal(p->Previous().tok);
+        return AssignmentExpr();
     }
 
-    if (p->Got(_IDENTIFIER)) {
-        return new Variable(p->Previous());
-    }
+    Expr Parser::AssignmentExpr() {
+        Expr expr = EqualityExpr();
 
-    if (p->Got(_LEFT_PAREN)) {
-        Expr expr = p->Expression();
-        /* Noop */
-        if (expr.index() == 4)
+        if (Match({_EQUAL}))
         {
-            goto error;
+            Token equals = Previous();
+            Expr value = AssignmentExpr();
+
+            if (core::is_type<Variable*>(expr)) {
+                Token name = (std::get<Variable*>(expr))->name;
+                return new Assign(name, value);
+            }
+
+            Error(errors::ErrorType::UNEXPECTED_TOKEN , equals, "Invalid assignment target.");
         }
-        if (!p->Got(_RIGHT_PAREN))
-        {
-            errors::ReportError(errors::ErrorType::MISSING_TOKEN, p->Current().pos, "Missing token ')'");
-            goto error;
-        }
-        return new Grouping(expr);
+
+        return expr;
     }
 
-    errors::ReportError(errors::ErrorType::UNEXPECTED_TOKEN, p->Current().pos, "Unexpected Token");
-error:
-    p->Advance();
-    return new Noop();
+    Expr Parser::EqualityExpr() {
+        Expr expr = ComparsionExpr();
+
+        if (Match({_BANG_EQUAL, _EQUAL_EQUAL})) {
+            Token oper = Previous();
+            Expr rhs = ComparsionExpr();
+            expr = new Binary(expr, oper, rhs);
+        }
+
+        return expr;
+    }
+
+    Expr Parser::ComparsionExpr() {
+        Expr expr = TermExpr();
+
+        if (Match({_GREATER, _GREATER_EQUAL, _LESS, _LESS_EQUAL})) {
+            Token oper = Previous();
+            Expr rhs = TermExpr();
+            expr = new Binary(expr, oper, rhs);
+        }
+
+        return expr;
+    }
+
+    Expr Parser::TermExpr() {
+        Expr expr = FactorExpr();
+
+        while (Match({_PLUS, _DASH})) {
+            Token oper = Previous();
+            Expr rhs = FactorExpr();
+            expr = new Binary(expr, oper, rhs);
+        }
+
+        return expr;
+    }
+
+    Expr Parser::FactorExpr() {
+        Expr expr = UnaryExpr();
+
+        while (Match({_STAR, _SLASH})) {
+            Token oper = Previous();
+            Expr rhs = UnaryExpr();
+            expr = new Binary(expr, oper, rhs);
+        }
+
+        return expr;
+    }
+
+    Expr Parser::UnaryExpr() {
+        if (Match({_DASH, _BANG}))
+        {
+            Token oper = Previous();
+            Expr rhs = Parser::UnaryExpr();
+            return new Unary(oper, rhs);
+        }
+
+        return Primary();
+    }
+
+    Expr Parser::Primary()
+    {
+        if (Match({_TRUE, _FALSE, _NIL, _NUMBER, _STRING}))
+        {
+            return new Literal(Previous().tok);
+        }
+
+        if (Match({_IDENTIFIER}))
+        {
+            return new Variable(Previous());
+        }
+
+        if (Match({_LEFT_PAREN}))
+        {
+            Expr expr = NewExpression();
+            Consume(_RIGHT_PAREN, "Expect ')' after expression.");
+            return new Grouping(expr);
+        }
+
+        throw Error(errors::ErrorType::UNEXPECTED_TOKEN, Peek(), Format("Unexpected token ", Peek().tok, "."));
+
+    }
 }

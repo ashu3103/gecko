@@ -1,7 +1,10 @@
-#include <iostream>
-#include <token.h>
 #include <expr.h>
 #include <stmt.h>
+#include <token.h>
+
+/* system */
+#include <iostream>
+#include <stdexcept>
 #include <vector>
 
 using namespace token;
@@ -19,23 +22,52 @@ const std::vector<TokenType> stopset = {
 };
 
 namespace ast {
-    class Parser {
+    class ParserError: public std::exception {
         public:
+            const char* what() const noexcept override {
+                return "Parser Error!";
+            }
+    };
+
+    class Parser {
+        private:
+            /* states of a parser */
             std::vector<Token> tokens = {};
             int current = 0;
             bool fnest = false;
+
+            /* private helper methods */
+            bool Match(std::vector<TokenType> types);
+            Token Consume(TokenType type, std::string message);
+            bool Check(TokenType type);
+            Token Advance();
+            bool IsAtEnd();
+            Token Peek();
+            Token Previous();
+            void Synchronize();
+            ParserError Error(errors::ErrorType err_type, Token token, std::string msg);
+
+            /* expression parsing methods */
+            Expr NewExpression();
+            Expr AssignmentExpr();
+            Expr EqualityExpr();
+            Expr ComparsionExpr();
+            Expr TermExpr();
+            Expr FactorExpr();
+            Expr UnaryExpr();
+            Expr Primary();
+
+            /* statement parsing method */
+            Stmt NewStatement();
+            Stmt VarDeclStmt();
+            Stmt ExpressionStmt();
+            Stmt PrintStmt();
+
+        public:
+
             Parser(std::vector<Token> t);
             ~Parser();
-
-            bool Match(std::vector<TokenType> matchList);
-            void Advance();
-
-            bool Got(TokenType type);
-            bool Want(TokenType type);
             
-            Token Previous();
-            Token Current();
-            Expr Expression();
-            Stmt Statement();
+            std::vector<Stmt> Parse();
     };
 }
