@@ -25,7 +25,7 @@ namespace core {
         return std::visit([](const auto& v) -> std::string {
             using T = std::decay_t<decltype(v)>;
             if constexpr (std::is_same_v<T, std::monostate>) {
-                return "nil"; // or "null"
+                return "(nil)"; // or "null"
             } else if constexpr (std::is_same_v<T, double>) {
                 return std::to_string(v);
             } else if constexpr (std::is_same_v<T, std::string>) {
@@ -33,7 +33,8 @@ namespace core {
             } else if constexpr (std::is_same_v<T, bool>) {
                 return v ? "true" : "false";
             } else {
-                return "unknown"; // fallback
+                std::runtime_error("unknown value type");
+                return "{unknown}"; // fallback
             }
         }, value);
     }
