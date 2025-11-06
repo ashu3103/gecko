@@ -19,6 +19,7 @@ namespace errors {
         INVALID_CHARACTER,      // lexer error, if any invalid character is encountered
         INVALID_OPERAND_TYPE,
         DIVISION_BY_ZERO,
+        UNDEFINED_VARIABLE
         // Add more error types as needed
     };
 }
