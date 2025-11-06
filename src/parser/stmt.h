@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <variant>
+#include <vector>
 #include <token.h>
 #include <expr.h>
 
@@ -10,9 +11,10 @@ namespace ast {
 	struct Expression;
 	struct Print;
 	struct Var;
+	struct Block;
 	struct Void;
 
-	using Stmt = std::variant<Expression*, Print*, Var*, Void*>;
+	using Stmt = std::variant<Expression*, Print*, Var*, Block*, Void*>;
 
 	struct Expression {
 		Expr expr;
@@ -31,6 +33,12 @@ namespace ast {
 		Expr initializer;
 
 		Var(token::Token name, Expr initializer): name(name), initializer(initializer) {}
+	};
+
+	struct Block {
+		std::vector<Stmt> statements;
+
+		Block(std::vector<Stmt> statements): statements(statements) {}
 	};
 
 	struct Void {

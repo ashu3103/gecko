@@ -3,7 +3,7 @@
     "namespace": "ast",
     "filename": "stmt",
     "basename": "Stmt",
-    "libs": ["iostream", "variant", "token.h", "expr.h"],
+    "libs": ["iostream", "variant", "vector", "token.h", "expr.h"],
     "classes": [
         {
             "name": "Expression",
@@ -33,6 +33,15 @@
                 {
                     "type": "Expr",
                     "name": "initializer"
+                }
+            ]
+        },
+        {
+            "name": "Block",
+            "fields": [
+                {
+                    "type": "std::vector<Stmt>",
+                    "name": "statements"
                 }
             ]
         },

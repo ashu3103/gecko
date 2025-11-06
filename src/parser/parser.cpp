@@ -121,11 +121,24 @@ namespace ast {
             if (Match({_VAR})) return VarDeclStmt();
             if (Match({_PRINT})) return PrintStmt();
 
+            if (Match({_LEFT_BRACE})) return BlockStmt();
+
             return ExpressionStmt();
         } catch (ParserError err) {
             Synchronize();
             return new Void();
         }
+    }
+
+    Stmt Parser::BlockStmt() {
+        std::vector<Stmt> statements = {};
+
+        while (!Check(_RIGHT_BRACE) && !IsAtEnd()) {
+            statements.push_back(NewStatement());
+        }
+
+        Consume(_RIGHT_BRACE, "Expect '}' after block");
+        new Block(statements);
     }
 
     Stmt Parser::VarDeclStmt() {

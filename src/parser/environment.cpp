@@ -1,7 +1,13 @@
 #include <environment.h>
 
 namespace ast {
-    Environment::Environment() {}
+    Environment::Environment() {
+        enclosing = NULL;
+    }
+
+    Environment::Environment(Environment* env) {
+        enclosing = env;
+    }
 
     Environment::~Environment() {
         values.clear();
@@ -16,6 +22,9 @@ namespace ast {
             return values.at(tok.tok);
         }
 
+        /* find the variable in the parent */
+        if (enclosing != NULL) return enclosing->Get(tok);
+        
         std::string msg = "Undefined variable " + tok.tok + ".";
         throw std::runtime_error(errors::GenerateRuntimeError(errors::ErrorType::UNDEFINED_VARIABLE, tok.pos, msg));
     }
@@ -23,6 +32,13 @@ namespace ast {
     void Environment::Assign(token::Token tok, core::gtype value) {
         if (values.find(tok.tok) != values.end()) {
             values.insert({tok.tok, value});
+            return;
+        }
+
+        /* find the variable in the parent */
+        if (enclosing != NULL)
+        {
+            enclosing->Assign(tok, value);
             return;
         }
 

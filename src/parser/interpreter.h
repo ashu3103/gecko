@@ -18,6 +18,7 @@ namespace ast {
 
             void operator()(Expression* &);
             void operator()(Print* &);
+            void operator()(Block* &);
             void operator()(Var* &);
             void operator()(Void* &);
 
@@ -45,5 +46,6 @@ namespace ast {
 
             core::gtype evaluate(Expr &expr);
             void execute(Stmt &stmt);
+            void executeBlock(std::vector<Stmt> stmts, Environment* env);
     };
 }

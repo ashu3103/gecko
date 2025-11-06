@@ -154,11 +154,30 @@ namespace ast {
         env->Define(stmt->name.tok, value);
     }
 
+    void AstInterpreter::operator()(Block* &stmt) {
+        executeBlock(stmt->statements, new Environment(this->env));
+    }
+
     core::gtype AstInterpreter::evaluate(Expr &expr) {
         return std::visit(*this, expr);
     }
 
     void AstInterpreter::execute(Stmt &stmt) {
         std::visit(*this, stmt);
+    }
+
+    void AstInterpreter::executeBlock(std::vector<Stmt> stmts, Environment* env) {
+        Environment* previous = this->env;
+        try {
+            this->env = env;
+            for (int i = 0; i < stmts.size(); i++)
+            {
+                execute(stmts[i]);
+            }
+
+            this->env = previous;
+        } catch (...) {
+            this->env = previous;
+        }
     }
 }

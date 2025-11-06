@@ -61,6 +61,7 @@ namespace ast {
             Stmt NewStatement();
             Stmt VarDeclStmt();
             Stmt ExpressionStmt();
+            Stmt BlockStmt();
             Stmt PrintStmt();
 
         public:
