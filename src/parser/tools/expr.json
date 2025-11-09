@@ -76,6 +76,23 @@
             ]
         },
         {
+            "name": "Logical",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "lhs"
+                },
+                {
+                    "type": "token::Token",
+                    "name": "oper"
+                },
+                {
+                    "type": "Expr",
+                    "name": "rhs"
+                }
+            ]
+        },
+        {
             "name": "Noop",
             "fields": [
                 

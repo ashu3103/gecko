@@ -46,6 +46,36 @@
             ]
         },
         {
+            "name": "If",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "condition"
+                },
+                {
+                    "type": "Stmt",
+                    "name": "thenBranch"
+                },
+                {
+                    "type": "Stmt",
+                    "name": "elseBranch"
+                }
+            ]
+        },
+        {
+            "name": "While",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "condition"
+                },
+                {
+                    "type": "Stmt",
+                    "name": "body"
+                }
+            ]
+        },
+        {
             "name": "Void",
             "fields": [
                 
