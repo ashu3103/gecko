@@ -12,9 +12,10 @@ namespace ast {
 	struct Grouping;
 	struct Literal;
 	struct Variable;
+	struct Logical;
 	struct Noop;
 
-	using Expr = std::variant<Assign*, Binary*, Unary*, Grouping*, Literal*, Variable*, Noop*>;
+	using Expr = std::variant<Assign*, Binary*, Unary*, Grouping*, Literal*, Variable*, Logical*, Noop*>;
 
 	struct Assign {
 		token::Token name;
@@ -54,6 +55,14 @@ namespace ast {
 		token::Token name;
 
 		Variable(token::Token name): name(name) {}
+	};
+
+	struct Logical {
+		Expr lhs;
+		token::Token oper;
+		Expr rhs;
+
+		Logical(Expr lhs, token::Token oper, Expr rhs): lhs(lhs), oper(oper), rhs(rhs) {}
 	};
 
 	struct Noop {

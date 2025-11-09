@@ -12,9 +12,11 @@ namespace ast {
 	struct Print;
 	struct Var;
 	struct Block;
+	struct If;
+	struct While;
 	struct Void;
 
-	using Stmt = std::variant<Expression*, Print*, Var*, Block*, Void*>;
+	using Stmt = std::variant<Expression*, Print*, Var*, Block*, If*, While*, Void*>;
 
 	struct Expression {
 		Expr expr;
@@ -39,6 +41,21 @@ namespace ast {
 		std::vector<Stmt> statements;
 
 		Block(std::vector<Stmt> statements): statements(statements) {}
+	};
+
+	struct If {
+		Expr condition;
+		Stmt thenBranch;
+		Stmt elseBranch;
+
+		If(Expr condition, Stmt thenBranch, Stmt elseBranch): condition(condition), thenBranch(thenBranch), elseBranch(elseBranch) {}
+	};
+
+	struct While {
+		Expr condition;
+		Stmt body;
+
+		While(Expr condition, Stmt body): condition(condition), body(body) {}
 	};
 
 	struct Void {
