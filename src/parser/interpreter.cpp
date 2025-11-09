@@ -1,9 +1,34 @@
 #include <interpreter.h>
 #include <error/errors.h>
 
+bool IsTruthy(core::gtype expr) {
+    if (core::is_type<bool>(expr))
+    {
+        return !std::get<bool>(expr);
+    }
+    if (core::is_type<std::monostate>(expr))
+    {
+        return false;
+    }
+    return true;
+}
+
 namespace ast {
     core::gtype AstInterpreter::operator()(Noop* &expr) {
         return std::monostate{};
+    }
+
+    core::gtype AstInterpreter::operator()(Logical* &expr) {
+        core::gtype lhs = evaluate(expr->lhs);
+
+        /* implement short circuiting */
+        if (expr->oper.type == _OR) {
+            if (IsTruthy(lhs)) return lhs;
+        } else if (expr->oper.type == _AND) {
+            if (!IsTruthy(lhs)) return lhs;
+        }
+
+        return evaluate(expr->rhs);
     }
 
     core::gtype AstInterpreter::operator()(Literal* &expr) {
@@ -27,15 +52,7 @@ namespace ast {
                 throw std::runtime_error(errors::GenerateRuntimeError(errors::ErrorType::INVALID_OPERAND_TYPE, expr->oper.pos, "expecting a number"));
                 break;
             case TokenType::_BANG:
-                if (core::is_type<bool>(rhs))
-                {
-                    return !std::get<bool>(rhs);
-                }
-                if (core::is_type<std::monostate>(rhs))
-                {
-                    return true;
-                }
-                return false;
+                return !IsTruthy(rhs);
             default:
                 throw std::runtime_error(errors::GenerateRuntimeError(errors::ErrorType::INVALID_CHARACTER, expr->oper.pos, "expecting a '!' or '-'"));
                 break;
@@ -152,6 +169,25 @@ namespace ast {
         }
 
         env->Define(stmt->name.tok, value);
+    }
+
+    void AstInterpreter::operator()(If* &stmt) {
+        if (IsTruthy(evaluate(stmt->condition)))
+        {
+            execute(stmt->thenBranch);
+        }
+        else if (!core::is_type<Void*>(stmt->elseBranch))
+        {
+            execute(stmt->elseBranch);
+        }
+        return;
+    }
+
+    void AstInterpreter::operator()(While* &stmt) {
+        while (IsTruthy(evaluate(stmt->condition)))
+        {
+            execute(stmt->body);
+        }
     }
 
     void AstInterpreter::operator()(Block* &stmt) {

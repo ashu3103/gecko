@@ -14,6 +14,7 @@ namespace ast {
             core::gtype operator()(Literal* &);
             core::gtype operator()(Grouping* &);
             core::gtype operator()(Variable* &);
+            core::gtype operator()(Logical* &);
             core::gtype operator()(Noop* &);
 
             void operator()(Expression* &);
@@ -21,6 +22,8 @@ namespace ast {
             void operator()(Block* &);
             void operator()(Var* &);
             void operator()(Void* &);
+            void operator()(If* &);
+            void operator()(While* &);
 
             void interpret(Expr expression) { 
                 try {
