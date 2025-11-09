@@ -14,7 +14,9 @@ For now, we are going to worry about only a handful of expressions:
 ```
 expression     → assignment ;
 assignment     → IDENTIFIER "=" assignment
-               | equality ;
+               | logic_or ;
+logic_or       → logic_and ("or" logic_and)* ;
+logic_and      → equality ("and" equality)* ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
@@ -45,7 +47,21 @@ declaration    → varDecl
                | statement ;
 
 statement      → exprStmt
-               | printStmt ;
+               | printStmt
+               | block
+               | whileStmt
+               | forStmt
+               | ifStmt ;
+
+forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+                 expression? ";"
+                 expression? ")" statement ;
+
+block          → "{" declaration* "}" ;
+
+ifStmt         → "if" "(" expression ")" statment ("else" statement)? ;
+
+whileStmt      → "while" "(" expression ")" statement ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 ```
