@@ -111,6 +111,34 @@ namespace ast {
             Advance();
         }
     }
+
+    Stmt DesugarForLoop(Stmt initializer, Expr condition, Expr increment, Stmt b) {
+        Stmt body = b;
+        /* desugaring for loop to while */
+        if (core::is_type<Noop*>(increment))
+        {
+            std::vector<Stmt> v = {};
+            v.push_back(body);
+            v.push_back(new Expression(increment));
+
+            body = new Block(v);
+        }
+
+        // if condition is not provided, infinite loop
+        if (core::is_type<Noop*>(condition)) condition = new Literal("true");
+        body = new While(condition, body);
+
+        if (!core::is_type<Void*>(initializer))
+        {
+            std::vector<Stmt> v = {};
+            v.push_back(initializer);
+            v.push_back(body);
+
+            body = new Block(v); 
+        }
+
+        return body;
+    }
 }
 
 /* expressin parsing methods */
@@ -120,14 +148,61 @@ namespace ast {
         try {
             if (Match({_VAR})) return VarDeclStmt();
             if (Match({_PRINT})) return PrintStmt();
-
             if (Match({_LEFT_BRACE})) return BlockStmt();
+            if (Match({_IF})) return IfStmt();
+            if (Match({_WHILE})) return WhileStmt();
+            if (Match({_FOR})) return ForStmt();
 
             return ExpressionStmt();
         } catch (ParserError err) {
             Synchronize();
             return new Void();
         }
+    }
+
+    Stmt Parser::ForStmt() {
+        Consume(_LEFT_PAREN, "Expect '(' after 'for'");
+        /* calculate initializer */
+        Stmt initializer;
+        if (Match({_SEMICOLON})) // skip initializer
+        {
+            initializer = new Void();
+        }
+        else if (Match({_VAR}))
+        {
+            initializer = VarDeclStmt();
+        }
+        else
+        {
+            initializer = ExpressionStmt();
+        }
+
+        /* calculate initializer */
+        Expr condition = new Noop();
+        if (!Check(_SEMICOLON))
+        {
+            condition = NewExpression();
+        }
+        Consume(_SEMICOLON, "Expect ';' after loop condition.");
+
+        /* calculate increment */
+        Expr increment = new Noop();
+        if (!Check(_RIGHT_PAREN)) {
+            increment = NewExpression();
+        }
+        Consume(_RIGHT_PAREN, "Expect ')' after for clauses.");
+        Stmt body = NewStatement();
+
+        return DesugarForLoop(initializer, condition, increment, body);
+    }
+
+    Stmt Parser::WhileStmt() {
+        Consume(_LEFT_PAREN, "Expect '(' after 'while'");
+        Expr condition = NewExpression();
+        Consume(_RIGHT_BRACE, "Expect ')' after 'while' condition");
+
+        Stmt body = NewStatement();
+        return new While(condition, body);
     }
 
     Stmt Parser::BlockStmt() {
@@ -165,13 +240,28 @@ namespace ast {
         return new Print(value);
     }
 
+    Stmt Parser::IfStmt() {
+        Consume(_LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = NewExpression();
+        Consume(_RIGHT_PAREN, "Expect ')' after 'if' condition.");
+
+        Stmt thenBranch = NewStatement();
+        Stmt elseBranch = new Void();
+
+        if (Match({_ELSE}))
+        {
+            elseBranch = NewStatement();
+        }
+        return new If(condition, thenBranch, elseBranch);
+    }
+
     Expr Parser::NewExpression()
     {
         return AssignmentExpr();
     }
 
     Expr Parser::AssignmentExpr() {
-        Expr expr = EqualityExpr();
+        Expr expr = OrExpr();
 
         if (Match({_EQUAL}))
         {
@@ -184,6 +274,30 @@ namespace ast {
             }
 
             Error(errors::ErrorType::UNEXPECTED_TOKEN , equals, "Invalid assignment target.");
+        }
+
+        return expr;
+    }
+
+    Expr Parser::OrExpr() {
+        Expr expr = AndExpr();
+
+        while (Match({_OR})) {
+            Token oper = Previous();
+            Expr right = AndExpr();
+            expr = new Logical(expr, oper, right);
+        }
+
+        return expr;
+    }
+
+    Expr Parser::AndExpr() {
+        Expr expr = EqualityExpr();
+
+        while (Match({_AND})) {
+            Token oper = Previous();
+            Expr right = EqualityExpr();
+            expr = new Logical(expr, oper, right);
         }
 
         return expr;

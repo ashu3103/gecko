@@ -46,10 +46,13 @@ namespace ast {
             Token Previous();
             void Synchronize();
             ParserError Error(errors::ErrorType err_type, Token token, std::string msg);
+            Stmt DesugarForLoop(Stmt initializer, Expr condition, Expr increment, Stmt body);
 
             /* expression parsing methods */
             Expr NewExpression();
             Expr AssignmentExpr();
+            Expr OrExpr();
+            Expr AndExpr();
             Expr EqualityExpr();
             Expr ComparsionExpr();
             Expr TermExpr();
@@ -63,6 +66,9 @@ namespace ast {
             Stmt ExpressionStmt();
             Stmt BlockStmt();
             Stmt PrintStmt();
+            Stmt IfStmt();
+            Stmt WhileStmt();
+            Stmt ForStmt();
 
         public:
 
