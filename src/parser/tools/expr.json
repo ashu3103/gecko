@@ -3,7 +3,7 @@
     "namespace": "ast",
     "filename": "expr",
     "basename": "Expr",
-    "libs": ["iostream", "variant", "token.h"],
+    "libs": ["iostream", "variant", "token.h", "vector"],
     "classes": [
         {
             "name": "Assign",
@@ -89,6 +89,23 @@
                 {
                     "type": "Expr",
                     "name": "rhs"
+                }
+            ]
+        },
+        {
+            "name": "Call",
+            "fields": [
+                {
+                    "type": "Expr",
+                    "name": "callee"
+                },
+                {
+                    "type": "token::Token",
+                    "name": "paren"
+                },
+                {
+                    "type": "std::vector<Expr>",
+                    "name": "arguments"
                 }
             ]
         },

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <variant>
 #include <token.h>
+#include <vector>
 
 namespace ast {
 	struct Assign;
@@ -13,9 +14,10 @@ namespace ast {
 	struct Literal;
 	struct Variable;
 	struct Logical;
+	struct Call;
 	struct Noop;
 
-	using Expr = std::variant<Assign*, Binary*, Unary*, Grouping*, Literal*, Variable*, Logical*, Noop*>;
+	using Expr = std::variant<Assign*, Binary*, Unary*, Grouping*, Literal*, Variable*, Logical*, Call*, Noop*>;
 
 	struct Assign {
 		token::Token name;
@@ -63,6 +65,14 @@ namespace ast {
 		Expr rhs;
 
 		Logical(Expr lhs, token::Token oper, Expr rhs): lhs(lhs), oper(oper), rhs(rhs) {}
+	};
+
+	struct Call {
+		Expr callee;
+		token::Token param;
+		std::vector<Expr> arguments;
+
+		Call(Expr callee, token::Token param, std::vector<Expr> arguments): callee(callee), param(param), arguments(arguments) {}
 	};
 
 	struct Noop {

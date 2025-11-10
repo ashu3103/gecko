@@ -112,7 +112,7 @@ namespace ast {
         }
     }
 
-    Stmt DesugarForLoop(Stmt initializer, Expr condition, Expr increment, Stmt b) {
+    Stmt Parser::DesugarForLoop(Stmt initializer, Expr condition, Expr increment, Stmt b) {
         Stmt body = b;
         /* desugaring for loop to while */
         if (core::is_type<Noop*>(increment))
@@ -359,7 +359,21 @@ namespace ast {
             return new Unary(oper, rhs);
         }
 
-        return Primary();
+        return CallExpr();
+    }
+
+    Expr Parser::CallExpr() {
+        Expr expr = Primary();
+        while (true)
+        {
+            if (Match({_LEFT_PAREN})) {
+                expr = finishCall(expr);
+            } else {
+                break;
+            }
+        }
+
+        return expr;
     }
 
     Expr Parser::Primary()
@@ -383,5 +397,22 @@ namespace ast {
 
         throw Error(errors::ErrorType::UNEXPECTED_TOKEN, Peek(), Format("Unexpected token ", Peek().tok, "."));
 
+    }
+    
+    Expr Parser::FinishCall(Expr callee) {
+        std::vector<Expr> arguments = {};
+        if (!Check(_RIGHT_PAREN))
+        {
+            do {
+                if (arguments.size() >= 255)
+                {
+                    Error(errors::ErrorType::DIVISION_BY_ZERO, Peek(), "Can't have more than 255 arguments.");
+                }
+                arguments.push_back(NewExpression());
+            } while(Match({_COMMA}));
+        }
+
+        Token paren = Consume(_RIGHT_PAREN, "Expect a ')' after arguments");
+        return new Call(callee, paren, arguments);
     }
 }

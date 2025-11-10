@@ -47,6 +47,7 @@ namespace ast {
             void Synchronize();
             ParserError Error(errors::ErrorType err_type, Token token, std::string msg);
             Stmt DesugarForLoop(Stmt initializer, Expr condition, Expr increment, Stmt body);
+            Expr FinishCall(Expr c);
 
             /* expression parsing methods */
             Expr NewExpression();
@@ -58,6 +59,7 @@ namespace ast {
             Expr TermExpr();
             Expr FactorExpr();
             Expr UnaryExpr();
+            Expr CallExpr();
             Expr Primary();
 
             /* statement parsing method */
