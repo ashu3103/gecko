@@ -69,10 +69,10 @@ namespace ast {
 
 	struct Call {
 		Expr callee;
-		token::Token param;
+		token::Token paren;
 		std::vector<Expr> arguments;
 
-		Call(Expr callee, token::Token param, std::vector<Expr> arguments): callee(callee), param(param), arguments(arguments) {}
+		Call(Expr callee, token::Token paren, std::vector<Expr> arguments): callee(callee), paren(paren), arguments(arguments) {}
 	};
 
 	struct Noop {

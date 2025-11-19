@@ -46,6 +46,7 @@ primary        → NUMBER | STRING | "true" | "false" | "nil"
 program        → declaration* EOF ;
 
 declaration    → varDecl
+               | funDecl
                | statement ;
 
 statement      → exprStmt
@@ -66,4 +67,8 @@ ifStmt         → "if" "(" expression ")" statment ("else" statement)? ;
 whileStmt      → "while" "(" expression ")" statement ;
 
 varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+
+funDecl        → "fun" function ;
+function       → IDENTIFIER "(" parameters? ")" block ;
+parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
 ```

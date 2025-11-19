@@ -6,9 +6,11 @@
 #include <string>
 #include <compare>
 
+#include "src/parser/callable.h"
+
 namespace core {
     /* define a manual class to store primitives, used for modelling literal AST node */
-    using gtype = std::variant<std::monostate, double, std::string, bool>;
+    using gtype = std::variant<std::monostate, double, std::string, bool, ast::funtype*>;
 
     /* Convert gtype to human readable format */
     std::string stringify(const gtype& value);

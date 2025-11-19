@@ -1,3 +1,6 @@
+#ifndef __ENV_H_
+#define __ENV_H_
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -21,3 +24,5 @@ namespace ast {
             void Assign(token::Token tok, core::gtype value);
     };
 }
+
+#endif

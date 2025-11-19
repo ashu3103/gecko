@@ -32,6 +32,8 @@ namespace core {
                 return v;
             } else if constexpr (std::is_same_v<T, bool>) {
                 return v ? "true" : "false";
+            } else if constexpr (std::is_same_v<T, ast::funtype*>) {
+                return "func";
             } else {
                 std::runtime_error("unknown value type");
                 return "{unknown}"; // fallback
