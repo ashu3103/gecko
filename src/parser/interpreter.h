@@ -1,3 +1,6 @@
+#ifndef __INTERPRETER_H_
+#define __INTERPRETER_H_
+
 #include <core/gtype.h>
 #include <environment.h>
 #include <expr.h>
@@ -15,12 +18,14 @@ namespace ast {
             core::gtype operator()(Grouping* &);
             core::gtype operator()(Variable* &);
             core::gtype operator()(Logical* &);
+            core::gtype operator()(Call* &);
             core::gtype operator()(Noop* &);
 
             void operator()(Expression* &);
             void operator()(Print* &);
             void operator()(Block* &);
             void operator()(Var* &);
+            void operator()(Function* &);
             void operator()(Void* &);
             void operator()(If* &);
             void operator()(While* &);
@@ -44,11 +49,13 @@ namespace ast {
                 }
             }
 
-        private:
             Environment* env = new Environment();
 
-            core::gtype evaluate(Expr &expr);
             void execute(Stmt &stmt);
             void executeBlock(std::vector<Stmt> stmts, Environment* env);
+        private:
+            core::gtype evaluate(Expr &expr);
     };
 }
+
+#endif

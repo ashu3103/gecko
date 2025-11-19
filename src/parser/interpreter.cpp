@@ -1,4 +1,5 @@
 #include <interpreter.h>
+#include <callable.h>
 #include <error/errors.h>
 
 bool IsTruthy(core::gtype expr) {
@@ -11,6 +12,13 @@ bool IsTruthy(core::gtype expr) {
         return false;
     }
     return true;
+}
+
+template <typename... Args>
+std::string Format(const Args&... args) {
+    std::string out = "";
+    (out = out + args);
+    return out;
 }
 
 namespace ast {
@@ -144,6 +152,31 @@ namespace ast {
         return value;
     }
 
+    core::gtype AstInterpreter::operator()(Call* &expr) {
+        core::gtype callee = evaluate(expr->callee);
+        std::vector<core::gtype> arguments = {};
+        for (int i = 0; i < expr->arguments.size(); i++)
+        {
+            arguments.push_back(evaluate(expr->arguments[i]));
+        }
+
+        // check if the callee is callable
+        if (!core::is_type<funtype*>(callee))
+        {
+            throw std::runtime_error(errors::GenerateRuntimeError(errors::ErrorType::INVALID_OPERAND_TYPE, expr->paren.pos, "can only call functions"));
+        }
+
+        funtype* function = std::get<funtype*>(callee);
+
+        if (function->Arity() != arguments.size())
+        {
+            int arity = function->Arity();
+            throw std::runtime_error(errors::GenerateRuntimeError(errors::ErrorType::GENERIC_ERROR, expr->paren.pos, Format("Expected ", std::to_string(arity), " arguments but got ", std::to_string(arguments.size()), ".")));
+        }
+
+        return function->Call(*this, arguments);
+    }
+
     core::gtype AstInterpreter::operator()(Variable* &expr) {
         return env->Get(expr->name);
     }
@@ -192,6 +225,12 @@ namespace ast {
 
     void AstInterpreter::operator()(Block* &stmt) {
         executeBlock(stmt->statements, new Environment(this->env));
+    }
+
+    void AstInterpreter::operator()(Function* &stmt) {
+        funtype* function = new funtype(*stmt);
+        env->Define(stmt->name.tok, function);
+        return;
     }
 
     core::gtype AstInterpreter::evaluate(Expr &expr) {
