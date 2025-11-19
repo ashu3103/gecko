@@ -76,6 +76,23 @@
             ]
         },
         {
+            "name": "Function",
+            "fields": [
+                {
+                    "type": "token::Token",
+                    "name": "name"
+                },
+                {
+                    "type": "std::vector<token::Token>",
+                    "name": "params"
+                },
+                {
+                    "type": "std::vector<Stmt>",
+                    "name": "body"
+                }
+            ]
+        },
+        {
             "name": "Void",
             "fields": [
                 
