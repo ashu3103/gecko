@@ -146,6 +146,7 @@ namespace ast {
 
     Stmt Parser::NewStatement() {
         try {
+            if (Match({_FUN})) return FunDeclStmt();
             if (Match({_VAR})) return VarDeclStmt();
             if (Match({_PRINT})) return PrintStmt();
             if (Match({_LEFT_BRACE})) return BlockStmt();
@@ -253,6 +254,32 @@ namespace ast {
             elseBranch = NewStatement();
         }
         return new If(condition, thenBranch, elseBranch);
+    }
+
+    Stmt Parser::FunDeclStmt() {
+        Token name = Consume(_IDENTIFIER, "Expect function name");
+        Consume(_LEFT_PAREN, "Expect a '(' after function name");
+
+        std::vector<Token> params = {};
+        // look for parameters
+        if (!Check(_RIGHT_PAREN))
+        {
+            do {
+                if (params.size() >= 255)
+                {
+                    Error(errors::ErrorType::GENERIC_ERROR, Peek(), "Can't have more than 255 parameters");
+                }
+
+                params.push_back(Consume(_IDENTIFIER, "Expected parameter name"));
+            } while(Match({_COMMA}));
+        }
+
+        Consume(_RIGHT_PAREN, "Expect ')'");
+
+        Consume(_LEFT_BRACE, "Expect '{' before function body");
+
+        Block body = std::get<Block>(BlockStmt());
+        return new Function(name, params, body.statements);
     }
 
     Expr Parser::NewExpression()
@@ -367,7 +394,7 @@ namespace ast {
         while (true)
         {
             if (Match({_LEFT_PAREN})) {
-                expr = finishCall(expr);
+                expr = FinishCall(expr);
             } else {
                 break;
             }
@@ -406,7 +433,7 @@ namespace ast {
             do {
                 if (arguments.size() >= 255)
                 {
-                    Error(errors::ErrorType::DIVISION_BY_ZERO, Peek(), "Can't have more than 255 arguments.");
+                    Error(errors::ErrorType::GENERIC_ERROR, Peek(), "Can't have more than 255 arguments.");
                 }
                 arguments.push_back(NewExpression());
             } while(Match({_COMMA}));

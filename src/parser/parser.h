@@ -1,3 +1,6 @@
+#ifndef __PARSER_H_
+#define __PARSER_H_
+
 #include <expr.h>
 #include <stmt.h>
 #include <token.h>
@@ -69,6 +72,7 @@ namespace ast {
             Stmt BlockStmt();
             Stmt PrintStmt();
             Stmt IfStmt();
+            Stmt FunDeclStmt();
             Stmt WhileStmt();
             Stmt ForStmt();
 
@@ -80,3 +84,5 @@ namespace ast {
             std::vector<Stmt> Parse();
     };
 }
+
+#endif
