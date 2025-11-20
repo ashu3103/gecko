@@ -17,7 +17,7 @@ bool IsTruthy(core::gtype expr) {
 template <typename... Args>
 std::string Format(const Args&... args) {
     std::string out = "";
-    (out = out + args);
+    ((out += args), ...);
     return out;
 }
 
@@ -221,6 +221,16 @@ namespace ast {
         {
             execute(stmt->body);
         }
+    }
+
+    void AstInterpreter::operator()(Return* &stmt) {
+        core::gtype value = std::monostate{};
+
+        if (!core::is_type<Noop*>(stmt->value)) {
+            value = evaluate(stmt->value);
+        }
+
+        throw new ReturnE(value);
     }
 
     void AstInterpreter::operator()(Block* &stmt) {

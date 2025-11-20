@@ -8,6 +8,13 @@
 #include <variant>
 
 namespace ast {
+    class ReturnE: public std::exception {
+        public:
+            core::gtype value;
+
+            ReturnE(core::gtype v): value(v) {}
+    };
+
     class AstInterpreter
     {
         public:
@@ -29,6 +36,7 @@ namespace ast {
             void operator()(Void* &);
             void operator()(If* &);
             void operator()(While* &);
+            void operator()(Return* &);
 
             void interpret(Expr expression) { 
                 try {
