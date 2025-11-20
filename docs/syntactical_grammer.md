@@ -54,7 +54,10 @@ statement      → exprStmt
                | block
                | whileStmt
                | forStmt
-               | ifStmt ;
+               | ifStmt
+               | returnStmt ;
+
+returnStmt     → "return" expression? ";" ;
 
 forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
                  expression? ";"

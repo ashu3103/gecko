@@ -5,8 +5,8 @@
 #include <variant>
 #include <string>
 #include <compare>
-
-#include "src/parser/callable.h"
+// Forward declare funtype to avoid including parser headers here
+namespace ast { class funtype; }
 
 namespace core {
     /* define a manual class to store primitives, used for modelling literal AST node */

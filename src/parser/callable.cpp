@@ -4,7 +4,7 @@ namespace ast {
     funtype::funtype(Function d): declaration(d) {}
 
     int funtype::Arity() {
-        declaration.params.size();
+        return (int)declaration.params.size();
     }
 
     core::gtype funtype::Call(AstInterpreter interpreter, std::vector<core::gtype> args) {
@@ -15,7 +15,12 @@ namespace ast {
             e->Define(declaration.params[i].tok, args[i]);
         }
 
-        interpreter.executeBlock(declaration.body, e);
+        try {
+            interpreter.executeBlock(declaration.body, e);
+        } catch (ReturnE returnValue) {
+            return returnValue.value;
+        }
+
         return std::monostate{};
     }
 

@@ -15,9 +15,10 @@ namespace ast {
 	struct If;
 	struct While;
 	struct Function;
+	struct Return;
 	struct Void;
 
-	using Stmt = std::variant<Expression*, Print*, Var*, Block*, If*, While*, Function*, Void*>;
+	using Stmt = std::variant<Expression*, Print*, Var*, Block*, If*, While*, Function*, Return*, Void*>;
 
 	struct Expression {
 		Expr expr;
@@ -65,6 +66,13 @@ namespace ast {
 		std::vector<Stmt> body;
 
 		Function(token::Token name, std::vector<token::Token> params, std::vector<Stmt> body): name(name), params(params), body(body) {}
+	};
+
+	struct Return {
+		token::Token keyword;
+		Expr value;
+
+		Return(token::Token keyword, Expr value): keyword(keyword), value(value) {}
 	};
 
 	struct Void {

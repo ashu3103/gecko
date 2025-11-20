@@ -93,6 +93,19 @@
             ]
         },
         {
+            "name": "Return",
+            "fields": [
+                {
+                    "type": "token::Token",
+                    "name": "keyword"
+                },
+                {
+                    "type": "Expr",
+                    "name": "value"
+                }
+            ]
+        },
+        {
             "name": "Void",
             "fields": [
                 
