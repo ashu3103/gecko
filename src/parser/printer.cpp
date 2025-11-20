@@ -27,6 +27,16 @@ namespace ast {
         return parenthesize(expr->value);
     }
 
+    std::string AstPrinter::operator()(Logical* &expr)
+    {
+        return parenthesize(expr->oper.tok, expr->lhs, expr->rhs);
+    }
+
+    std::string AstPrinter::operator()(Call* &expr)
+    {
+        return parenthesize("call", expr->callee);
+    }
+
     std::string AstPrinter::operator()(Noop* &expr)
     {
         return parenthesize("noop");
@@ -57,7 +67,58 @@ namespace ast {
         return parenthesize2("var", stmt->name.tok, stmt->initializer);
     }
 
-    std::string AstPrinter::operator()(Void* &expr)
+    std::string AstPrinter::operator()(Block* &stmt) {
+        std::string out = "(block ";
+
+        for (int i = 0; i < stmt->statements.size(); i++)
+        {
+            out += print(stmt->statements[i]);
+        }
+
+        out += ")";
+        return out;
+    }
+
+    std::string AstPrinter::operator()(If* &stmt) {
+        if (core::is_type<Void*>(stmt->elseBranch))
+        {
+            return parenthesize2("if", stmt->condition, stmt->thenBranch);
+        }
+        else
+        {
+            return parenthesize2("if-else", stmt->condition, stmt->thenBranch, stmt->elseBranch);
+        }
+    }
+
+    std::string AstPrinter::operator()(While* &stmt) {
+        return parenthesize2("while", stmt->condition, stmt->body);
+    }
+
+    std::string AstPrinter::operator()(Function* &stmt) {
+        std::string out = "(fun " + stmt->name.tok + "(";
+
+        for (int i = 0; i < stmt->params.size(); i++)
+        {
+            if (i != 0) out += " ";
+            out += stmt->params[i].tok;
+        }
+
+        out += ")";
+
+        for (int i = 0; i < stmt->body.size(); i++)
+        {
+            out += print(stmt->body[i]);
+        }
+
+        out += ")";
+        return out;
+    }
+
+    std::string AstPrinter::operator()(Return* &stmt) {
+        return parenthesize2("return", stmt->value);
+    }
+
+    std::string AstPrinter::operator()(Void* &stmt)
     {
         return "void";
     }

@@ -1,3 +1,6 @@
+#ifndef __PRINTER_H_
+#define __PRINTER_H_
+
 #include <iostream>
 #include <expr.h>
 #include <stmt.h>
@@ -13,11 +16,18 @@ namespace ast {
             std::string operator()(Literal* &);
             std::string operator()(Grouping* &);
             std::string operator()(Variable* &);
+            std::string operator()(Logical* &);
+            std::string operator()(Call* &);
             std::string operator()(Noop* &);
 
             std::string operator()(Expression* &);
             std::string operator()(Print* &);
             std::string operator()(Var* &);
+            std::string operator()(Block* &);
+            std::string operator()(If* &);
+            std::string operator()(While* &);
+            std::string operator()(Function* &);
+            std::string operator()(Return* &);
             std::string operator()(Void* &);
 
             /* function overloading */
@@ -65,3 +75,5 @@ namespace ast {
 
     };
 }
+
+#endif
