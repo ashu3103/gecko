@@ -5,7 +5,7 @@
 template <typename... Args>
 std::string Format(const Args&... args) {
     std::string out = "";
-    (out = out + args);
+    ((out += args), ...);
     return out;
 }
 
@@ -153,6 +153,7 @@ namespace ast {
             if (Match({_IF})) return IfStmt();
             if (Match({_WHILE})) return WhileStmt();
             if (Match({_FOR})) return ForStmt();
+            if (Match({_RETURN})) return ReturnStmt();
 
             return ExpressionStmt();
         } catch (ParserError err) {
@@ -214,7 +215,7 @@ namespace ast {
         }
 
         Consume(_RIGHT_BRACE, "Expect '}' after block");
-        new Block(statements);
+        return new Block(statements);
     }
 
     Stmt Parser::VarDeclStmt() {
@@ -256,6 +257,19 @@ namespace ast {
         return new If(condition, thenBranch, elseBranch);
     }
 
+    Stmt Parser::ReturnStmt() {
+        Token keyword = Previous();
+        Expr value = new Noop();
+
+        if (!Check(_SEMICOLON)) {
+            value = NewExpression();
+        }
+
+        Consume(_SEMICOLON, "Expect ';' after return value");
+
+        return new Return(keyword, value);
+    }
+
     Stmt Parser::FunDeclStmt() {
         Token name = Consume(_IDENTIFIER, "Expect function name");
         Consume(_LEFT_PAREN, "Expect a '(' after function name");
@@ -275,11 +289,10 @@ namespace ast {
         }
 
         Consume(_RIGHT_PAREN, "Expect ')'");
-
         Consume(_LEFT_BRACE, "Expect '{' before function body");
 
-        Block body = std::get<Block>(BlockStmt());
-        return new Function(name, params, body.statements);
+        Block* body = std::get<Block*>(BlockStmt());
+        return new Function(name, params, body->statements);
     }
 
     Expr Parser::NewExpression()
