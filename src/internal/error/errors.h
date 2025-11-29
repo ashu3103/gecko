@@ -40,10 +40,11 @@ namespace errors {
     /**
      * filing a complaint with details
      * @param err_type The error type
-     * @param pos The position of the token
+     * @param tok The position of the token
+     * @param off The offset, the token length basically
      * @param msg The message to be printed
      */
-    void ReportError(ErrorType err_type, position::Pos pos, std::string msg);
+    void ReportError(ErrorType err_type, position::Pos pos, int off, std::string msg);
 
     /**
      * generate a runtime error

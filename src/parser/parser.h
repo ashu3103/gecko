@@ -38,7 +38,6 @@ namespace ast {
             /* states of a parser */
             std::vector<Token> tokens = {};
             int current = 0;
-            bool fnest = false;
 
             /* private helper methods */
             bool Match(std::vector<TokenType> types);

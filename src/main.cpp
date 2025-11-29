@@ -23,6 +23,11 @@ int main(int argc, char* argv[])
         std::cout << tokens[i].tok << std::endl;
     }
 
+    if (errors::has_errors)
+    {
+        exit(1);
+    }
+
     ast::Parser parser(tokens);
     std::vector<ast::Stmt> stmts = parser.Parse();
     // ast::Stmt stmt1 = parser.NewStatement();

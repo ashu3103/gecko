@@ -150,8 +150,8 @@ namespace scanner {
                 break;
             default:
                 src.NextChr();
-                errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), "Invalid character encountered");
-                break;
+                errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), 0, "Invalid character encountered");
+                return false;
         }
 
         return true;
@@ -216,13 +216,13 @@ namespace scanner {
         for (;;)
         {
             if (src.GetCurrentChr() == SENTINEL) {     // EOF error
-                errors::ReportError(errors::ErrorType::UNEXPECTED_END_OF_FILE, position::Pos(start_off, src.GetCurrentOffset()), "Unexpected EOF encountered");
+                errors::ReportError(errors::ErrorType::UNEXPECTED_END_OF_FILE, position::Pos(start_off, src.GetCurrentOffset()), src.GetCurrentOffset() - start_off - 1, "Unexpected EOF encountered");
                 ok = false;
                 break;
             } else if (src.GetCurrentChr() == '\n') {  // newline error
                 src.NextChr();
-                errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), "Invalid newline character encountered");
-                // ok = false;
+                errors::ReportError(errors::ErrorType::INVALID_CHARACTER, position::Pos(start_off, src.GetCurrentOffset()), src.GetCurrentOffset() - start_off - 1, "Invalid newline character encountered");
+                ok = false;
                 break;
             } else if (src.GetCurrentChr() == '"') {
                 src.NextChr();

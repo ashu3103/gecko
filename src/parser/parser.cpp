@@ -83,7 +83,7 @@ namespace ast {
     }
 
     ParserError Parser::Error(errors::ErrorType err_type, Token token, std::string msg) {
-        errors::ReportError(err_type, token.pos, msg);
+        errors::ReportError(err_type, token.pos, token.tok.size(), msg);
         return ParserError();
     }
 
@@ -95,10 +95,7 @@ namespace ast {
         // Advance();
         while (!IsAtEnd())
         {
-            if (Previous().type == TokenType::_SEMICOLON) return;
-
             switch (Peek().type) {
-                case TokenType::_CLASS:
                 case TokenType::_FUN:
                 case TokenType::_VAR:
                 case TokenType::_FOR:
@@ -138,7 +135,7 @@ namespace ast {
         }
 
         return body;
-    }
+    } 
 }
 
 /* expressin parsing methods */
@@ -194,6 +191,10 @@ namespace ast {
         }
         Consume(_RIGHT_PAREN, "Expect ')' after for clauses.");
         Stmt body = NewStatement();
+        if (core::is_type<Void*>(body))
+        {
+            throw ParserError();
+        }
 
         return DesugarForLoop(initializer, condition, increment, body);
     }
@@ -202,8 +203,12 @@ namespace ast {
         Consume(_LEFT_PAREN, "Expect '(' after 'while'");
         Expr condition = NewExpression();
         Consume(_RIGHT_PAREN, "Expect ')' after 'while' condition");
-
         Stmt body = NewStatement();
+        if (core::is_type<Void*>(body))
+        {
+            throw ParserError();
+        }
+
         return new While(condition, body);
     }
 
@@ -211,7 +216,12 @@ namespace ast {
         std::vector<Stmt> statements = {};
 
         while (!Check(_RIGHT_BRACE) && !IsAtEnd()) {
-            statements.push_back(NewStatement());
+            Stmt s = NewStatement();
+            if (core::is_type<Void*>(s))
+            {
+                throw ParserError();
+            }
+            statements.push_back(s);
         }
 
         Consume(_RIGHT_BRACE, "Expect '}' after block");
@@ -248,11 +258,19 @@ namespace ast {
         Consume(_RIGHT_PAREN, "Expect ')' after 'if' condition.");
 
         Stmt thenBranch = NewStatement();
+        if (core::is_type<Void*>(thenBranch))
+        {
+            throw ParserError();
+        }
         Stmt elseBranch = new Void();
 
         if (Match({_ELSE}))
         {
             elseBranch = NewStatement();
+            if (core::is_type<Void*>(elseBranch))
+            {
+                throw ParserError();
+            }
         }
         return new If(condition, thenBranch, elseBranch);
     }

@@ -12,7 +12,7 @@ namespace errors {
     bool has_runtime_errors = false;
     ErrorType error_status = ErrorType::NO_ERROR;
     /* Helper function to report errors at a specific position */
-    void ReportError(ErrorType err_type, position::Pos pos, std::string msg)
+    void ReportError(ErrorType err_type, position::Pos pos, int off, std::string msg)
     {
         /* set has errors flags */
         has_errors = true;
@@ -23,7 +23,7 @@ namespace errors {
 
         std::cout << pos.filepath << ":" << line << ":" << col << ": " << msg << std::endl;
         std::cout << GenerateNSpaces(NUM_LINE_DIGITS - CountNumDigits(line)) << line << " |   " << GetLineFromOffset(pos, line) << std::endl;
-        std:: cout << GenerateNSpaces(NUM_LINE_DIGITS) << " |   "  << GenerateNSpaces(col) << "^~~~~" << std::endl;
+        std:: cout << GenerateNSpaces(NUM_LINE_DIGITS) << " |   "  << GenerateNSpaces(col + off - 1) << "^~~~~" << std::endl;
     }
     /* Helper function to generate runtime errors at a specific position */
     std::string GenerateRuntimeError(ErrorType err_type, position::Pos pos, std::string msg)
