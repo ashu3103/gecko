@@ -99,14 +99,15 @@ namespace ast {
 
         for (int i = 0; i < stmt->params.size(); i++)
         {
-            if (i != 0) out += " ";
+            if (i != 0) out += ", ";
             out += stmt->params[i].tok;
         }
 
-        out += ")";
+        out += ") (block ";
 
         for (int i = 0; i < stmt->body.size(); i++)
         {
+            if (i != 0) out += " ";
             out += print(stmt->body[i]);
         }
 
