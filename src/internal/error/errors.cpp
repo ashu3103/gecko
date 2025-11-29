@@ -23,7 +23,7 @@ namespace errors {
 
         std::cout << pos.filepath << ":" << line << ":" << col << ": " << msg << std::endl;
         std::cout << GenerateNSpaces(NUM_LINE_DIGITS - CountNumDigits(line)) << line << " |   " << GetLineFromOffset(pos, line) << std::endl;
-        std:: cout << GenerateNSpaces(NUM_LINE_DIGITS) << " |   "  << GenerateNSpaces(col - 1) << "^~~~~" << std::endl;
+        std:: cout << GenerateNSpaces(NUM_LINE_DIGITS) << " |   "  << GenerateNSpaces(col) << "^~~~~" << std::endl;
     }
     /* Helper function to generate runtime errors at a specific position */
     std::string GenerateRuntimeError(ErrorType err_type, position::Pos pos, std::string msg)
