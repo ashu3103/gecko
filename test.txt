@@ -1,1 +1,13 @@
 a = 2;
+
+if (a) {
+    b = a + c;
+    a = 3;
+}
+
+fun identity(a, c) {
+    while (a) {
+        a = a + 1;
+    }
+    return a;
+}

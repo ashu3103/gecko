@@ -52,7 +52,7 @@ namespace ast {
     Token Parser::Consume(TokenType type, std::string message) {
         if (Check(type)) return Advance();
 
-        throw Error(errors::ErrorType::UNEXPECTED_TOKEN, Peek(), message);
+        throw Error(errors::ErrorType::UNEXPECTED_TOKEN, Previous(), message);
     }
 
     // check if the current token is of particular type
@@ -92,7 +92,7 @@ namespace ast {
     // that indicate the beginning of a statement in the event that an error occurs while parsing 
     // for a statement.
     void Parser::Synchronize() {
-        Advance();
+        // Advance();
         while (!IsAtEnd())
         {
             if (Previous().type == TokenType::_SEMICOLON) return;
@@ -201,7 +201,7 @@ namespace ast {
     Stmt Parser::WhileStmt() {
         Consume(_LEFT_PAREN, "Expect '(' after 'while'");
         Expr condition = NewExpression();
-        Consume(_RIGHT_BRACE, "Expect ')' after 'while' condition");
+        Consume(_RIGHT_PAREN, "Expect ')' after 'while' condition");
 
         Stmt body = NewStatement();
         return new While(condition, body);
